@@ -1,7 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 
-namespace TodoApp.View;
+namespace TodoApp.Views;
 
 public partial class ConfirmDialog : Window {
     public ConfirmDialog() {
@@ -13,9 +13,11 @@ public partial class ConfirmDialog : Window {
         
     }
 
-    private void OnConfirmClick(object? sender, RoutedEventArgs e)
+    private void YesButton_Click(object? sender, RoutedEventArgs e)
         => Close(true); //returns true to whoever opened the dialog
     
-    private void OnCancelClick(object? sender, RoutedEventArgs e)
-        => Close(false); //returns false
+    private void NoButton_Click(object? sender, RoutedEventArgs e)
+    {
+        Close(false); //returns false     
+    }
 }

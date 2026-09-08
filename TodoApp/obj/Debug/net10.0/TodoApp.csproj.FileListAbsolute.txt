@@ -128,3 +128,4 @@
 /home/drewtc/Documents/UPV/CMSC 128/Lab/Lab 1/TodoApp/obj/Debug/net10.0/TodoApp.pdb
 /home/drewtc/Documents/UPV/CMSC 128/Lab/Lab 1/TodoApp/obj/Debug/net10.0/TodoApp.genruntimeconfig.cache
 /home/drewtc/Documents/UPV/CMSC 128/Lab/Lab 1/TodoApp/obj/Debug/net10.0/ref/TodoApp.dll
+/home/drewtc/Documents/UPV/CMSC 128/Lab/Lab 1/TodoApp/obj/Debug/net10.0/TodoApp.sourcelink.json

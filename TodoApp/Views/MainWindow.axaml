@@ -3,20 +3,51 @@
         xmlns:vm="using:TodoApp.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:conv="using:TodoApp.Converters"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="TodoApp.Views.MainWindow"
-        x:DataType="vm:MainViewModel"
+        x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
         Title="TodoApp">
+
+
+
+    <DockPanel Margin="10">
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="5">
+            <TextBox PlaceholderText="Enter task..." Text="{Binding NewTitle}" Width="150"/>
+            <ComboBox SelectedItem="{Binding NewProperty}">
+                <ComboBoxItem>Low</ComboBoxItem>
+                <ComboBoxItem>Med</ComboBoxItem>
+                <ComboBoxItem>High</ComboBoxItem>
+            </ComboBox>
+            <Button Content="Add" Command="{Binding AddTaskCommand}"/>
+        </StackPanel>
+
+        <ListBox ItemsSource="{Binding Tasks}">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel>
+                        <CheckBox IsChecked="{Binding IsDone}"
+                                  Command="{Binding $parent[Window].DataContext.ToggleDoneCommand}"
+                                  CommandParameter="{Binding}"/>
+                        <TextBlock Text="{Binding Title}"
+                                    TextDecorations="{Binding IsDone, Converter={x:Static conv:StrikethroughConverter.Instance}}"/>
+                        <Button Content="Delete"
+                                Command="{Binding $parent[Window].DataContext.DeleteTaskCommand}"
+                                CommandParameter="{Binding}"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+   
+    </DockPanel>
 
     <Design.DataContext>
         <!-- This only sets the DataContext for the previewer in an IDE,
              to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
-        <vm:MainViewModel />
+        <vm:MainWindowViewModel />
     </Design.DataContext>
 
-    <TextBox Text="{Binding Greeting}"
-             HorizontalAlignment="Center"
-             VerticalAlignment="Center" />
+
 
 </Window>
