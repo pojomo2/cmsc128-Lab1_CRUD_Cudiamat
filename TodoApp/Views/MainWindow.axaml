@@ -9,29 +9,28 @@
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
         Title="TodoApp">
-
+    <Window.Resources>
+        <conv:StrikethroughConverter x:Key="StrikethroughConverter"/>
+    </Window.Resources>
 
 
     <DockPanel Margin="10">
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8">
             <TextBox PlaceholderText="Enter task..." Text="{Binding NewTitle}" Width="150"/>
-            <ComboBox SelectedItem="{Binding NewProperty}">
-                <ComboBoxItem>Low</ComboBoxItem>
-                <ComboBoxItem>Med</ComboBoxItem>
-                <ComboBoxItem>High</ComboBoxItem>
-            </ComboBox>
+            <ComboBox ItemsSource="{Binding PriorityOptions}"
+                        SelectedItem="{Binding NewPriority}" />
             <Button Content="Add" Command="{Binding AddTaskCommand}"/>
         </StackPanel>
 
         <ListBox ItemsSource="{Binding Tasks}">
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="10">
                         <CheckBox IsChecked="{Binding IsDone}"
                                   Command="{Binding $parent[Window].DataContext.ToggleDoneCommand}"
                                   CommandParameter="{Binding}"/>
                         <TextBlock Text="{Binding Title}"
-                                    TextDecorations="{Binding IsDone, Converter={x:Static conv:StrikethroughConverter.Instance}}"/>
+                                    TextDecorations="{Binding IsDone, Converter={StaticResource StrikethroughConverter}}"/>
                         <TextBlock/>
                         <TextBlock Text="{Binding Priority}"/>
                         <Button Content="Delete"

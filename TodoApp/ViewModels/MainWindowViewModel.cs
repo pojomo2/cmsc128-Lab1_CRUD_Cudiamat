@@ -29,6 +29,8 @@ public partial class MainWindowViewModel : ViewModelBase {
         Load();
     }
 
+    public string[] PriorityOptions {get;} = ["Low", "Med", "High"];
+
     private void Load() {
         Tasks.Clear();
         foreach (var t in _db.Tasks.OrderBy(t => t.DueDate))
@@ -80,12 +82,7 @@ public partial class MainWindowViewModel : ViewModelBase {
         }
     }
 
-    private string _newProperty = string.Empty;
-    public string NewProperty
-    {
-        get => _newProperty;
-        set => SetProperty(ref _newProperty, value);
-    }
+ 
 }
 
 //Tasks in ObservableCollection is DIFFERENT from _db.Tasks, the former is driving the UI, the latter is the actualy table
