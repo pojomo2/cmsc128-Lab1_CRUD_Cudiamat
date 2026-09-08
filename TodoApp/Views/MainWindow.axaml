@@ -13,7 +13,7 @@
 
 
     <DockPanel Margin="10">
-        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="5">
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8">
             <TextBox PlaceholderText="Enter task..." Text="{Binding NewTitle}" Width="150"/>
             <ComboBox SelectedItem="{Binding NewProperty}">
                 <ComboBoxItem>Low</ComboBoxItem>
@@ -32,6 +32,8 @@
                                   CommandParameter="{Binding}"/>
                         <TextBlock Text="{Binding Title}"
                                     TextDecorations="{Binding IsDone, Converter={x:Static conv:StrikethroughConverter.Instance}}"/>
+                        <TextBlock/>
+                        <TextBlock Text="{Binding Priority}"/>
                         <Button Content="Delete"
                                 Command="{Binding $parent[Window].DataContext.DeleteTaskCommand}"
                                 CommandParameter="{Binding}"/>

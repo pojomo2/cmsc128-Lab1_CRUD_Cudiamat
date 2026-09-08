@@ -50,6 +50,8 @@ public partial class MainWindowViewModel : ViewModelBase {
         _db.SaveChanges(); //"Update"
     }
 
+ 
+
     [RelayCommand]
     private void DeleteTask(TodoItem item) {
         //show confirmation dialogue BEFORE calling this,, see below
