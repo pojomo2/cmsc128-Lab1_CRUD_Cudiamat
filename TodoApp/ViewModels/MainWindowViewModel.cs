@@ -5,6 +5,12 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
 using TodoApp.ViewModels;
+using System.Reflection.Metadata;
+using System.Threading.Tasks;
+using Avalonia.Controls;
+using TodoApp.Views;
+using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
 
 namespace TodoApp.ViewModels;
 
@@ -53,11 +59,25 @@ public partial class MainWindowViewModel : ViewModelBase {
  
 
     [RelayCommand]
-    private void DeleteTask(TodoItem item) {
-        //show confirmation dialogue BEFORE calling this,, see below
-        _db.Tasks.Remove(item);
-        _db.SaveChanges(); //"Delete",, save the delete
-        Tasks.Remove(item);
+    private async Task DeleteTask(TodoItem item)
+    {
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            var ownerWindow = desktop.MainWindow;
+            
+            if(ownerWindow != null)
+            {
+                var dialog = new ConfirmDialog($"Are you sure you want to delete '{item.Title}'?");
+                var result = await dialog.ShowDialog<bool>(ownerWindow);
+
+                if(result)
+                {
+                    _db.Tasks.Remove(item);
+                    _db.SaveChanges(); //"Delete",, save the delete
+                    Tasks.Remove(item);
+                }
+            }
+        }
     }
 
     private string _newProperty = string.Empty;
