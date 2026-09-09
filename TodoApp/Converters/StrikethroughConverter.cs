@@ -7,14 +7,24 @@ namespace TodoApp.Converters;
 
 public class StrikethroughConverter : IValueConverter
 {
-    public static readonly StrikethroughConverter Instance = new();
-
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        bool isDone = value is bool b && b;
-        return isDone ? TextDecorations.Strikethrough : null;
+
+        if (value is bool isDone && isDone)
+        {
+            var decoration = new TextDecoration
+            {
+                Location = TextDecorationLocation.Strikethrough,
+                Stroke = Brushes.Gray,
+                StrokeThickness = 1.5
+            };
+            return new TextDecorationCollection { decoration };
+        }
+        
+        return null; //no decoration when unchecked
+
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => throw new NotSupportedException();
+        => throw new NotImplementedException();
 }

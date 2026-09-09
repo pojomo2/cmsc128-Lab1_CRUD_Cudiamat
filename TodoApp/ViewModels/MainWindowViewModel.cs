@@ -76,7 +76,6 @@ public partial class MainWindowViewModel : ViewModelBase {
 
     [RelayCommand]
     private void ToggleDone(TodoItem item) {
-        item.IsDone = !item.IsDone;
         _db.SaveChanges(); //"Update"
     }
 
