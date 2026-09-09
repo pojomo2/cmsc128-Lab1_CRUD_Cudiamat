@@ -19,6 +19,7 @@
             <TextBox PlaceholderText="Enter task..." Text="{Binding NewTitle}" Width="150"/>
             <ComboBox ItemsSource="{Binding PriorityOptions}"
                         SelectedItem="{Binding NewPriority}" />
+            <DatePicker SelectedDate="{Binding NewDueDate}"/>
             <Button Content="Add" Command="{Binding AddTaskCommand}"/>
         </StackPanel>
 
@@ -44,13 +45,17 @@
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <CheckBox IsChecked="{Binding IsDone}"
+                                  VerticalAlignment="Center"
                                   Command="{Binding $parent[Window].DataContext.ToggleDoneCommand}"
                                   CommandParameter="{Binding}"/>
                         <TextBlock Text="{Binding Title}"
+                                    VerticalAlignment="Center"
                                     TextDecorations="{Binding IsDone, Converter={StaticResource StrikethroughConverter}}"/>
-                        <TextBlock/>
-                        <TextBlock Text="{Binding Priority}"/>
-                        <TextBlock Text="{Binding DueDate}"/>
+                        <TextBlock Text="{Binding Priority}"
+                                    VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding DueDate, StringFormat=\{0:MM/dd/yyyy\}}"
+                                    VerticalAlignment="Center"
+                                    Foreground="Gray"/>
                         <Button Content="Delete"
                                 Command="{Binding $parent[Window].DataContext.DeleteTaskCommand}"
                                 CommandParameter="{Binding}"/>
