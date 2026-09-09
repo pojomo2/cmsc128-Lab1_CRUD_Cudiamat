@@ -28,8 +28,9 @@ public partial class MainWindowViewModel : ViewModelBase {
     [ObservableProperty] private string newTitle = "";
     [ObservableProperty] private DateTimeOffset newDueDate = DateTimeOffset.Now;
     [ObservableProperty] private string newPriority = "Low";
-    [ObservableProperty] private string newTag = "Others";
+    [ObservableProperty] private string newTag = "Personal";
     [ObservableProperty] private bool _isUndoBannerVisible;
+    [ObservableProperty] private TodoItem? _selectedTask;
 
 
 
@@ -49,6 +50,8 @@ public partial class MainWindowViewModel : ViewModelBase {
 
     public string[] PriorityOptions {get;} = ["Low", "Med", "High"];
     
+    public string[] TagOptions {get;} = ["School", "Personal", "Others"];
+
 
 
     private void Load() {
@@ -75,10 +78,21 @@ public partial class MainWindowViewModel : ViewModelBase {
     }
 
     [RelayCommand]
-    private void ToggleDone(TodoItem item) {
+    private void ToggleDone(TodoItem item) 
+    {
         _db.SaveChanges(); //"Update"
     }
 
+
+    [RelayCommand]
+    private void EditTask(TodoItem item)
+    {
+        SelectedTask = item;
+        NewTitle = item.Title;
+        NewDueDate = item.DueDate;
+        NewPriority = item.Priority;
+        NewTag = item.Tag;
+    }
  
 
     [RelayCommand]
@@ -128,7 +142,27 @@ public partial class MainWindowViewModel : ViewModelBase {
         }
     }
 
- 
+    [RelayCommand] 
+    private void SaveEdits()
+        {
+            if(SelectedTask == null) return;
+
+            SelectedTask.Title = NewTitle;
+            SelectedTask.DueDate = NewDueDate.DateTime;
+            SelectedTask.Priority = NewPriority;
+            SelectedTask.Tag = NewTag;
+
+              
+            _db.SaveChanges();
+            Load();
+            SelectedTask = null;
+
+            NewTitle="";
+            NewPriority="Low";
+            NewTag="Others";
+        }
+
+    
 }
 
 //Tasks in ObservableCollection is DIFFERENT from _db.Tasks, the former is driving the UI, the latter is the actualy table

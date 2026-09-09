@@ -10,10 +10,11 @@ public partial class TodoItem : ObservableObject { //auto-increment primary key
     public string Title {get; set;} = "";
     public DateTime DueDate {get; set;}
     public string Priority {get; set;} = "Low";
-    public string Tag {get; set;} = "Others";
+    public string Tag {get; set;} = "Personal";
     public DateTime CreatedAt {get; set;} = DateTime.Now; //for "sort by date added"
 
     [ObservableProperty] private bool _isDone;
+
 
 }
 

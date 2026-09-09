@@ -20,7 +20,9 @@
             <ComboBox ItemsSource="{Binding PriorityOptions}"
                         SelectedItem="{Binding NewPriority}" />
             <DatePicker SelectedDate="{Binding NewDueDate}"/>
+            <ComboBox ItemsSource="{Binding TagOptions}" SelectedItem="{Binding NewTag}"/>
             <Button Content="Add" Command="{Binding AddTaskCommand}"/>
+            <Button Content="Save" Command="{Binding SaveEditsCommand}" IsVisible="{Binding SelectedTask, Converter={x:Static ObjectConverters.IsNotNull}}"/>
         </StackPanel>
 
         <Border IsVisible="{Binding IsUndoBannerVisible}"
@@ -40,7 +42,8 @@
             </StackPanel>
         </Border>
 
-        <ListBox ItemsSource="{Binding Tasks}">
+        <ListBox ItemsSource="{Binding Tasks}"
+                SelectedItem = "{Binding SelectedTask, Mode=TwoWay}">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal" Spacing="10">
@@ -53,21 +56,20 @@
                                     TextDecorations="{Binding IsDone, Converter={StaticResource StrikethroughConverter}}"/>
                         <TextBlock Text="{Binding Priority}"
                                     VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding Tag}"
+                                    VerticalAlignment="Center"/>
                         <TextBlock Text="{Binding DueDate, StringFormat=\{0:MM/dd/yyyy\}}"
                                     VerticalAlignment="Center"
                                     Foreground="Gray"/>
                         <Button Content="Delete"
                                 Command="{Binding $parent[Window].DataContext.DeleteTaskCommand}"
                                 CommandParameter="{Binding}"/>
-                        
+                        <Button Content="Edit" Command="{Binding $parent[Window].DataContext.EditTaskCommand}" CommandParameter="{Binding}"/>
+                    <!-- Input fields for editing the currently selected task -->
                     </StackPanel>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
-
-
-
-
 
 
     </DockPanel>
