@@ -22,6 +22,23 @@
             <Button Content="Add" Command="{Binding AddTaskCommand}"/>
         </StackPanel>
 
+        <Border IsVisible="{Binding IsUndoBannerVisible}"
+                                        Background="#333333"
+                                        CornerRadius="4"
+                                        Padding="10"
+                                        Margin="10"
+                                        DockPanel.Dock="Bottom">
+            <StackPanel Orientation="Horizontal" Spacing="15">
+                <TextBlock Text="Task deleted"
+                            VerticalAlignment="Center"
+                            Foreground="White"/>
+                    <Button Content="Undo"
+                            Command="{Binding UndoCommand}"
+                            />
+
+            </StackPanel>
+        </Border>
+
         <ListBox ItemsSource="{Binding Tasks}">
             <ListBox.ItemTemplate>
                 <DataTemplate>
@@ -33,14 +50,21 @@
                                     TextDecorations="{Binding IsDone, Converter={StaticResource StrikethroughConverter}}"/>
                         <TextBlock/>
                         <TextBlock Text="{Binding Priority}"/>
+                        <TextBlock Text="{Binding DueDate}"/>
                         <Button Content="Delete"
                                 Command="{Binding $parent[Window].DataContext.DeleteTaskCommand}"
                                 CommandParameter="{Binding}"/>
+                        
                     </StackPanel>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
-   
+
+
+
+
+
+
     </DockPanel>
 
     <Design.DataContext>

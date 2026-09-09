@@ -10,6 +10,7 @@ public partial class ConfirmDialog : Window {
 
     public ConfirmDialog(string message) : this(){
         this.FindControl<TextBlock>("MessageText")!.Text = message;
+        //This just makes it possible to write a warning message in the view model 
         
     }
 

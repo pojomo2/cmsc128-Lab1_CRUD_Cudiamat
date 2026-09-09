@@ -1,16 +1,13 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
-using TodoApp.ViewModels;
-using System.Reflection.Metadata;
 using System.Threading.Tasks;
-using Avalonia.Controls;
 using TodoApp.Views;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Threading;
 
 namespace TodoApp.ViewModels;
 
@@ -18,24 +15,49 @@ public partial class MainWindowViewModel : ViewModelBase {
     private readonly TodoDbContext _db = new();
 
     public ObservableCollection<TodoItem> Tasks {get;} = new();
+    //ObservableCollection means Avalonia constantly monitors it
+
+    private TodoItem? _lastDeletedTask;
+    //'?' eans the TodoItem can be null when no task is currently stored
+    //These things need to be declared at the top of the class to be accessible by methods within the class
+
+    private readonly DispatcherTimer _undoTimer;
+    
+
 
     [ObservableProperty] private string newTitle = "";
     [ObservableProperty] private DateTimeOffset newDueDate = DateTimeOffset.Now;
     [ObservableProperty] private string newPriority = "Low";
     [ObservableProperty] private string newTag = "Others";
+    [ObservableProperty] private bool _isUndoBannerVisible;
+
+
 
     public MainWindowViewModel() {
         _db.Database.EnsureCreated();
         Load();
+
+
+
+        _undoTimer = new DispatcherTimer 
+        {
+            Interval = TimeSpan.FromSeconds(5),
+        };
+        _undoTimer.Tick += OnUndoTimerTick;
+
     }
 
     public string[] PriorityOptions {get;} = ["Low", "Med", "High"];
+    
+
 
     private void Load() {
         Tasks.Clear();
         foreach (var t in _db.Tasks.OrderBy(t => t.DueDate))
             Tasks.Add(t);
     }
+
+
 
     [RelayCommand]
     private void AddTask() {
@@ -71,14 +93,39 @@ public partial class MainWindowViewModel : ViewModelBase {
             {
                 var dialog = new ConfirmDialog($"Are you sure you want to delete '{item.Title}'?");
                 var result = await dialog.ShowDialog<bool>(ownerWindow);
-
                 if(result)
                 {
-                    _db.Tasks.Remove(item);
-                    _db.SaveChanges(); //"Delete",, save the delete
+                    _lastDeletedTask = item;
                     Tasks.Remove(item);
+                    IsUndoBannerVisible = true;
+                    _undoTimer.Start();
                 }
             }
+        }
+    }
+
+        private void OnUndoTimerTick(object? sender, EventArgs e)
+    {
+        _undoTimer.Stop();
+        IsUndoBannerVisible = false;
+
+        if(_lastDeletedTask != null)
+        {
+            _db.Tasks.Remove(_lastDeletedTask);
+            _db.SaveChanges();
+            _lastDeletedTask = null; //clear the cached ref
+        }
+    }
+
+    [RelayCommand]
+    private void Undo()
+    {
+        if(_lastDeletedTask != null)
+        {
+            _undoTimer.Stop();
+            Tasks.Add(_lastDeletedTask);
+            IsUndoBannerVisible = false;
+            _lastDeletedTask = null;
         }
     }
 
