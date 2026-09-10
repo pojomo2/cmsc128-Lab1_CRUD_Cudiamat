@@ -51,9 +51,7 @@
                                   VerticalAlignment="Center"
                                   Command="{Binding $parent[Window].DataContext.ToggleDoneCommand}"
                                   CommandParameter="{Binding}"/>
-                        <TextBlock Text="{Binding Title}"
-                                    VerticalAlignment="Center"
-                                    TextDecorations="{Binding IsDone, Converter={StaticResource StrikethroughConverter}}"/>
+
                         <TextBlock Text="{Binding Priority}"
                                     VerticalAlignment="Center"/>
                         <TextBlock Text="{Binding Tag}"
@@ -69,7 +67,9 @@
                     </StackPanel>
                 </DataTemplate>
             </ListBox.ItemTemplate>
-        </ListBox>
+                              <TextBlock Text="{Binding Title}"
+                                    VerticalAlignment="Center"
+                                    TextDecorations="{Binding IsDone, Converter={StaticResource StrikethroughConverter}}"/>  </ListBox>
 
 
     </DockPanel>

@@ -5,7 +5,7 @@ using System.Globalization;
 
 namespace TodoApp.Converters;
 
-public class StrikethroughConverter : IValueConverter
+public class StrikethroughConverter : IValueConverter //IValueConverter is a contract requiring both Convert and ConvertBack to exist
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
