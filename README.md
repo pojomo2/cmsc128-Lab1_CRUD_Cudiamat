@@ -81,6 +81,6 @@ TodoApp/
 ## Screenshots
 
 
-| ![SS1](Assets/Screenshot_20260910_231046.png) | ![SS2](Assets/Screenshot_20260910_231121.png) | ![SS3](Assets/Screenshot_20260910_231138.png) |
+| ![SS1](TodoApp/Assets/Screenshot_20260910_231046.png) | ![SS2](TodoApp/Assets/Screenshot_20260910_231121.png) | ![SS3](TodoApp/Assets/Screenshot_20260910_231138.png) |
 
-| ![SS4](Assets/Screenshot_20260911_115700.png) | ![SS5](Assets/Screenshot_20260911_120217.png) |
+| ![SS4](TodoApp/Assets/Screenshot_20260911_115700.png) | ![SS5](TodoApp/Assets/Screenshot_20260911_120217.png) |
