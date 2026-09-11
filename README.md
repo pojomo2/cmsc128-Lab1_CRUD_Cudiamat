@@ -80,11 +80,7 @@ TodoApp/
 
 ## Screenshots
 
-<!-- Add screenshots below — replace with actual images from Screenshots/ -->
-| Main List | Add Task | Delete Confirmation |
-|---|---|---|
-| ![Main list](Screenshots/main-view.png) | ![Add task](Screenshots/add-task.png) | ![Delete confirm](Screenshots/delete-confirm.png) |
 
-| Undo Banner | Calendar View |
-|---|---|
-| ![Undo](Screenshots/undo-banner.png) | ![Calendar](Screenshots/calendar-view.png) |
+| ![SS1](Assets/Screenshot_20260910_231046.png) | ![SS2](Assets/Screenshot_20260910_231121.png) | ![SS3](Assets/Screenshot_20260910_231138.png) |
+
+| ![SS4](Assets/Screenshot_20260911_115700.png) | ![SS5](Assets/Screenshot_20260911_120217.png) |

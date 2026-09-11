@@ -52,6 +52,11 @@
                                   Command="{Binding $parent[Window].DataContext.ToggleDoneCommand}"
                                   CommandParameter="{Binding}"/>
 
+                        
+                        <TextBlock Text="{Binding Title}"
+                                    VerticalAlignment="Center"
+                                    TextDecorations="{Binding IsDone, Converter={StaticResource StrikethroughConverter}}"/>  
+                        
                         <TextBlock Text="{Binding Priority}"
                                     VerticalAlignment="Center"/>
                         <TextBlock Text="{Binding Tag}"
@@ -67,11 +72,7 @@
                     </StackPanel>
                 </DataTemplate>
             </ListBox.ItemTemplate>
-                              <TextBlock Text="{Binding Title}"
-                                    VerticalAlignment="Center"
-                                    TextDecorations="{Binding IsDone, Converter={StaticResource StrikethroughConverter}}"/>  </ListBox>
-
-
+        </ListBox>
     </DockPanel>
 
     <Design.DataContext>
@@ -79,7 +80,5 @@
              to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
         <vm:MainWindowViewModel />
     </Design.DataContext>
-
-
 
 </Window>
