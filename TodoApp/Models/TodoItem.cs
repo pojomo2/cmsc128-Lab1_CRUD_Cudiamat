@@ -3,10 +3,10 @@ using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 
-public partial class TodoItem : ObservableObject { //auto-increment primary key
+public partial class TodoItem : ObservableObject { 
 
 
-    public int Id {get; set;} 
+    public int Id {get; set;} //auto-increment primary key
     public string Title {get; set;} = "";
     public DateTime DueDate {get; set;}
     public string Priority {get; set;} = "Low";

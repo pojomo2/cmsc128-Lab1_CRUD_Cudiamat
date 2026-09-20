@@ -71,6 +71,10 @@ public partial class MainWindowViewModel : ViewModelBase {
             Tag = NewTag
         };
 
+        if (_lastDeletedTask != null) {
+            return; 
+        }
+
         _db.Tasks.Add(item);
         _db.SaveChanges(); //this is the "Create" write to disk
         Tasks.Add(item);
@@ -122,6 +126,7 @@ public partial class MainWindowViewModel : ViewModelBase {
         _undoTimer.Stop();
         IsUndoBannerVisible = false;
 
+        
         if(_lastDeletedTask != null)
         {
             _db.Tasks.Remove(_lastDeletedTask);
@@ -167,3 +172,4 @@ public partial class MainWindowViewModel : ViewModelBase {
 
 //Tasks in ObservableCollection is DIFFERENT from _db.Tasks, the former is driving the UI, the latter is the actualy table
 
+//Should've put a guard at the add task when last deleted task is not null
