@@ -6,7 +6,8 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace TodoApp.ViewModels;
 
-public partial class AuthViewModel : ViewModelBase{
+public partial class AuthViewModel : ViewModelBase
+{
     private readonly TodoDbContext _db = new();
     private readonly string SessionFilePath = Path.Combine(AppContext.BaseDirectory, "session.txt");
 
@@ -80,3 +81,20 @@ public partial class AuthViewModel : ViewModelBase{
 
 }
 
+private void TryRestoreSession()
+    {
+        if(!File.Exists(SessionFilePath)) return;
+
+        var token = File.ReadAllText(SessionFilePath);
+        var session = _db.Sessions.FirstOrDefault(s => s.Token == token && s.ExpiresAt > DateTime.Now);
+
+        if (session != null)
+        {
+            CurrentUser = _db.Users.FirstOrDefault(u => u.Id == session.UserId);
+        } 
+        else
+        {
+            File.Delete(SessionFilePath); //stale/expire token, clean it up
+        }
+            
+    }
