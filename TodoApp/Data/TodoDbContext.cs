@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 public class TodoDbContext : DbContext {
     public DbSet<TodoItem> Tasks => Set<TodoItem>();
+    public DbSet<User> Users => Set<User>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder options)
     {
