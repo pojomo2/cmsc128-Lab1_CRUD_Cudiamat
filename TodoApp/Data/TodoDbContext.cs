@@ -1,6 +1,8 @@
 //EF Core context (the persistence layer)
 //this is where data persists 
 //SQLite file todos.db sits next to the executable and survives restarts
+using System;
+using System.IO;
 using Microsoft.EntityFrameworkCore;
 
 public class TodoDbContext : DbContext {
