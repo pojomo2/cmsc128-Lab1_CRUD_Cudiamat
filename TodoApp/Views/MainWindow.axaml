@@ -81,4 +81,6 @@
         <vm:MainWindowViewModel />
     </Design.DataContext>
 
+    <TransitioningContentControl Content="{Binding CurrentPage}" />
+
 </Window>

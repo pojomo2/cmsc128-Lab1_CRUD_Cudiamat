@@ -1,0 +1,1 @@
+var loginView = new LoginView { DataContext = new AuthViewModel() };

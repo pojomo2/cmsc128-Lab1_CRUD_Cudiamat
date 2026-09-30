@@ -1,0 +1,17 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:TodoApp.ViewModels"
+        x:Class="TodoApp.Views.LoginView"
+        x:DataType="vm:AuthViewModel"
+        Title="Login">
+
+    <Design.DataContext>
+        <vm:AuthViewModel />
+    </Design.DataContext>
+
+    <TextBox Watermark="Email" Text="{Binding LoginEmail}"/>
+    <TextBox Watermark="Password" PasswordChar="•" Text="{Binding LoginPassword}"/>
+    <TextBlock Text="{Binding LoginError}" Foreground="Red"/>
+    <Button Content="Log In" Command="{Binding LoginCommand}"/>
+
+</Windw>

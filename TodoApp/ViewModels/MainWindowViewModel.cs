@@ -12,6 +12,17 @@ using Avalonia.Threading;
 namespace TodoApp.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase {
+    
+    [ObservableProperty]
+    private ViewModelBase _currentPage;
+    
+    public MainWindowViewModel()
+    {
+        CurrentPage = new AuthViewModel();
+
+    }  
+
+
     private readonly TodoDbContext _db = new();
 
     public ObservableCollection<TodoItem> Tasks {get;} = new();
