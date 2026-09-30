@@ -7,20 +7,10 @@ namespace TodoApp.Views;
 public partial class AuthView : UserControl
 {
 
-    private void input_password()
-    {
-        
+    public AuthView() {
+        InitializeComponent();
     }
 
-    private void input_email()
-    {
-        
-    }
-    
-    private void confirm_button()
-    {
-        
-    }
 
 }
 

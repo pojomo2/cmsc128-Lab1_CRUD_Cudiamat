@@ -12,6 +12,7 @@ public partial class TodoItem : ObservableObject {
     public string Priority {get; set;} = "Low";
     public string Tag {get; set;} = "Personal";
     public DateTime CreatedAt {get; set;} = DateTime.Now; //for "sort by date added"
+    public int UserId { get; set; }
 
     [ObservableProperty] private bool _isDone;
 

@@ -13,12 +13,25 @@ namespace TodoApp.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase {
     
-    [ObservableProperty]
-    private ViewModelBase _currentPage;
+    
+
+    public AuthViewModel Auth { get; } = new();
     
     public MainWindowViewModel()
     {
-        CurrentPage = new AuthViewModel();
+        Load();
+
+        _undoTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromSeconds(5)
+        };
+        _undoTimer.Tick += OnUndoTimerTick;
+
+        Auth.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(AuthViewModel.CurrentUser))
+                Load();
+        }
 
     }  
 
@@ -51,7 +64,11 @@ public partial class MainWindowViewModel : ViewModelBase {
 
     private void Load() {
         Tasks.Clear();
-        foreach (var t in _db.Tasks.OrderBy(t => t.DueDate))
+
+        if (Auth.CurrentUser is not { } user)
+            return;
+
+        foreach (var t in _db.Tasks.Where(task => task.UserId == user.Id).OrderBy(t => t.DueDate))
             Tasks.Add(t);
     }
 
@@ -59,6 +76,9 @@ public partial class MainWindowViewModel : ViewModelBase {
 
     [RelayCommand]
     private void AddTask() {
+        if (Auth.CurrentUser is not { } user)
+            return;
+
         var item = new TodoItem {
             Title = NewTitle,
             DueDate = NewDueDate.DateTime,

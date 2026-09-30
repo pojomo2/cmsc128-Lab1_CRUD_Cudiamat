@@ -40,7 +40,7 @@ public partial class AuthViewModel : ViewModelBase
     public bool IsLoginVisible => CurrentState == AuthState.Login;
     public bool IsResetPasswordVisible => CurrentState == AuthState.ResetPassword;
     public bool IsRegisterVisible => CurrentState == AuthState.Register;
-    public bool IsProfileVisible => CurrentState == AuthState.Register;
+    public bool IsProfileVisible => CurrentState == AuthState.Profile;
 
 
     private readonly TodoDbContext _db = new();
@@ -66,7 +66,6 @@ public partial class AuthViewModel : ViewModelBase
 
     public AuthViewModel()
     {
-        _db.Database.EnsureCreated();
         TryRestoreSession();
     }
 
