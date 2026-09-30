@@ -4,12 +4,22 @@ using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
  
+public enum AuthState
+{
+    Login,
+    Register,
+    ResetPassword,
+    Profile
+}
+
 
 namespace TodoApp.ViewModels;
 
 public partial class AuthViewModel : ViewModelBase
 {
-        // password reset
+    [ObservableProperty]
+    private AuthState _currentState = AuthState.Login;
+     // password reset
     [ObservableProperty] private string resetEmail = "";
     [ObservableProperty] private string resetStatus = "";
     [ObservableProperty] private string resetError = "";
@@ -35,6 +45,12 @@ public partial class AuthViewModel : ViewModelBase
     [ObservableProperty] private string loginError = "";
 
     [ObservableProperty] private User? currentUser;
+
+    [RelayCommand]
+    public void ChangeState(AuthState newState)
+    {
+        CurrentState = newState;
+    }
 
 
     public AuthViewModel()

@@ -14,4 +14,31 @@
     <TextBlock Text="{Binding LoginError}" Foreground="Red"/>
     <Button Content="Log In" Command="{Binding LoginCommand}"/>
 
+    <UserControl xmlns="https://github.com"
+                xmlns:x="http://microsoft.com"
+                xmlns:vm="using:MyApp.ViewModels"
+                x:Class="MyApp.Views.LoginView"
+                x:DataType="vm:AuthViewModel">
+        
+        <StackPanel Spacing="10" Width="300" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <TextBlock Text="Login Screen" FontSize="18" HorizontalAlignment="Center"/>
+            
+            <TextBox Watermark="Email" Text="{Binding Email, Mode=TwoWay}"/>
+            <TextBox Watermark="Password" PasswordChar="*" Text="{Binding Password, Mode=TwoWay}"/>
+            
+            <Button Content="Sign In" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+            
+            <!-- Navigation helpers that pass the enum parameter back to the VM -->
+            <Button Content="Create an Account" 
+                    Command="{Binding ChangeStateCommand}" 
+                    CommandParameter="{x:Static vm:AuthState.Register}"
+                    Background="Transparent" HorizontalAlignment="Center"/>
+                    
+            <Button Content="Forgot Password?" 
+                    Command="{Binding ChangeStateCommand}" 
+                    CommandParameter="{x:Static vm:AuthState.ResetPassword}"
+                    Background="Transparent" HorizontalAlignment="Center"/>
+        </StackPanel>
+    </UserControl>
+
 </Windw>
