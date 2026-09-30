@@ -3,6 +3,8 @@ using System.Linq;
 using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+
+namespace TodoApp.ViewModels;
  
 public enum AuthState
 {
@@ -12,8 +14,6 @@ public enum AuthState
     Profile
 }
 
-
-namespace TodoApp.ViewModels;
 
 public partial class AuthViewModel : ViewModelBase
 {

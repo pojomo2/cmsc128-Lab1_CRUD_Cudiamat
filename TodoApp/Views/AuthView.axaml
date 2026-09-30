@@ -1,6 +1,6 @@
-<UserControl xmlns="https://github.com"
-                xmlns:x="http://microsoft.com"
-                xmlns:vm="using:MyApp.ViewModels"
+<UserControl xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:vm="using:TodoApp.ViewModels"
                 x:Class="TodoApp.Views.AuthView"
                 x:DataType="vm:AuthViewModel">
         
@@ -10,7 +10,7 @@
             <TextBox Watermark="Email" Text="{Binding LoginEmail, Mode=TwoWay}"/>
             <TextBox Watermark="Password" PasswordChar="*" Text="{Binding LoginPassword, Mode=TwoWay}"/>
             
-            <Button Content="Sign In" HorizontalAlignment="Stretch" Command = "{Binding LoginCommand}"HorizontalContentAlignment="Center"/>
+            <Button Content="Sign In" HorizontalAlignment="Stretch" Command = "{Binding LoginCommand}" HorizontalContentAlignment="Center"/>
             
             <!-- Navigation helpers that pass the enum parameter back to the VM -->
             <Button Content="Create an Account" 

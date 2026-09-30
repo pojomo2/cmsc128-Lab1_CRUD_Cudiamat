@@ -43,22 +43,6 @@ public partial class MainWindowViewModel : ViewModelBase {
     [ObservableProperty] private bool _isUndoBannerVisible;
     [ObservableProperty] private TodoItem? _selectedTask;
 
-
-
-    public MainWindowViewModel() {
-        _db.Database.EnsureCreated();
-        Load();
-
-
-
-        _undoTimer = new DispatcherTimer 
-        {
-            Interval = TimeSpan.FromSeconds(5),
-        };
-        _undoTimer.Tick += OnUndoTimerTick;
-
-    }
-
     public string[] PriorityOptions {get;} = ["Low", "Med", "High"];
     
     public string[] TagOptions {get;} = ["School", "Personal", "Others"];
