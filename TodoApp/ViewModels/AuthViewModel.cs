@@ -17,8 +17,6 @@ public enum AuthState
 
 public partial class AuthViewModel : ViewModelBase
 {
-    [ObservableProperty]
-    private AuthState _currentState = AuthState.Login;
      // password reset
     [ObservableProperty] private string resetEmail = "";
     [ObservableProperty] private string resetStatus = "";
@@ -31,6 +29,19 @@ public partial class AuthViewModel : ViewModelBase
     [ObservableProperty] private string newDisplayName = "";
     [ObservableProperty] private string profileError = "";
     [ObservableProperty] private string profileStatus = "";
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsLoginVisible))]
+    [NotifyPropertyChangedFor(nameof(IsResetPasswordVisible))]
+    [NotifyPropertyChangedFor(nameof(IsRegisterVisible))]
+    [NotifyPropertyChangedFor(nameof(IsProfileVisible))]
+    
+    private AuthState _currentState = AuthState.Login;
+
+    public bool IsLoginVisible => CurrentState == AuthState.Login;
+    public bool IsResetPasswordVisible => CurrentState == AuthState.ResetPassword;
+    public bool IsRegisterVisible => CurrentState == AuthState.Register;
+    public bool IsProfileVisible => CurrentState == AuthState.Register;
+
 
     private readonly TodoDbContext _db = new();
     private readonly string SessionFilePath = Path.Combine(AppContext.BaseDirectory, "session.txt");
@@ -87,6 +98,9 @@ public partial class AuthViewModel : ViewModelBase
         _db.SaveChanges();
         RegisterError = "";
         //navigate to login, or auto-login here
+        LoginEmail = RegEmail;
+        LoginPassword = "";
+        CurrentState = AuthState.Login;
     }
 
     [RelayCommand]
@@ -114,6 +128,13 @@ public partial class AuthViewModel : ViewModelBase
         CurrentUser = user;
         //naviaget to the logged-in / profile view
 
+        NewEmail = user.Email;
+        NewDisplayName = user.DisplayName;
+        NewPassword = "";
+        CurrentState = AuthState.Profile;
+
+
+
     }
 
 
@@ -126,7 +147,16 @@ public partial class AuthViewModel : ViewModelBase
 
         if (session != null)
         {
-            CurrentUser = _db.Users.FirstOrDefault(u => u.Id == session.UserId);
+            var user = _db.Users.FirstOrDefault(u => u.Id == session.UserId);
+            if (user != null)
+            {
+                CurrentUser = user;
+                NewEmail = user.Email;
+                NewDisplayName = user.DisplayName;
+                NewPassword = "";
+                CurrentState = AuthState.Profile; 
+            }
+            
         } 
         else
         {
@@ -147,6 +177,8 @@ public partial class AuthViewModel : ViewModelBase
         }
         CurrentUser = null;
         //navigate back to login
+        CurrentState = AuthState.Login;
+        LoginPassword = "";
     }
 
     [RelayCommand] 

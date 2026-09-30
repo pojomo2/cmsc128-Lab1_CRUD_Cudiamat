@@ -1,26 +1,90 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                xmlns:vm="using:TodoApp.ViewModels"
-                x:Class="TodoApp.Views.AuthView"
-                x:DataType="vm:AuthViewModel">
-        
-        <StackPanel Spacing="10" Width="300" HorizontalAlignment="Center" VerticalAlignment="Center">
-            <TextBlock Text="Login Screen" FontSize="18" HorizontalAlignment="Center"/>
-            
-            <TextBox Watermark="Email" Text="{Binding LoginEmail, Mode=TwoWay}"/>
-            <TextBox Watermark="Password" PasswordChar="*" Text="{Binding LoginPassword, Mode=TwoWay}"/>
-            
-            <Button Content="Sign In" HorizontalAlignment="Stretch" Command = "{Binding LoginCommand}" HorizontalContentAlignment="Center"/>
-            
-            <!-- Navigation helpers that pass the enum parameter back to the VM -->
-            <Button Content="Create an Account" 
-                    Command="{Binding ChangeStateCommand}" 
-                    CommandParameter="{x:Static vm:AuthState.Register}"
-                    Background="Transparent" HorizontalAlignment="Center"/>
-                    
-            <Button Content="Forgot Password?" 
-                    Command="{Binding ChangeStateCommand}" 
-                    CommandParameter="{x:Static vm:AuthState.ResetPassword}"
-                    Background="Transparent" HorizontalAlignment="Center"/>
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:TodoApp.ViewModels"
+             x:Class="TodoApp.Views.AuthView"
+             x:DataType="vm:AuthViewModel">
+
+    <Grid>
+        <!-- Login -->
+        <StackPanel Spacing="10"
+                    Width="300"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    IsVisible="{Binding IsLoginVisible}">
+            <TextBlock Text="Sign in" FontSize="20" />
+            <TextBox Watermark="Email" Text="{Binding LoginEmail}" />
+            <TextBox Watermark="Password"
+                     PasswordChar="*"
+                     Text="{Binding LoginPassword}" />
+            <TextBlock Text="{Binding LoginError}" Foreground="Red" />
+            <Button Content="Sign in" Command="{Binding LoginCommand}" />
+            <Button Content="Create an account"
+                    Command="{Binding ChangeStateCommand}"
+                    CommandParameter="{x:Static vm:AuthState.Register}" />
+            <Button Content="Forgot password?"
+                    Command="{Binding ChangeStateCommand}"
+                    CommandParameter="{x:Static vm:AuthState.ResetPassword}" />
         </StackPanel>
+
+        <!-- Register -->
+        <StackPanel Spacing="10"
+                    Width="300"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    IsVisible="{Binding IsRegisterVisible}">
+            <TextBlock Text="Create an account" FontSize="20" />
+            <TextBox Watermark="Display name" Text="{Binding RegDisplayName}" />
+            <TextBox Watermark="Email" Text="{Binding RegEmail}" />
+            <TextBox Watermark="Password"
+                     PasswordChar="*"
+                     Text="{Binding RegPassword}" />
+            <TextBlock Text="{Binding RegisterError}" Foreground="Red" />
+            <Button Content="Register" Command="{Binding RegisterCommand}" />
+            <Button Content="Back to sign in"
+                    Command="{Binding ChangeStateCommand}"
+                    CommandParameter="{x:Static vm:AuthState.Login}" />
+        </StackPanel>
+
+        <!-- Reset password -->
+        <StackPanel Spacing="10"
+                    Width="300"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    IsVisible="{Binding IsResetPasswordVisible}">
+            <TextBlock Text="Reset password" FontSize="20" />
+            <TextBox Watermark="Account email" Text="{Binding ResetEmail}" />
+            <Button Content="Send reset code"
+                    Command="{Binding RequestPasswordResetCommand}" />
+            <TextBox Watermark="Reset code" Text="{Binding SubmittedToken}" />
+            <TextBox Watermark="New password"
+                     PasswordChar="*"
+                     Text="{Binding NewPassword}" />
+            <TextBlock Text="{Binding ResetError}" Foreground="Red" />
+            <TextBlock Text="{Binding ResetStatus}" />
+            <Button Content="Update password"
+                    Command="{Binding CompletePasswordResetCommand}" />
+            <Button Content="Back to sign in"
+                    Command="{Binding ChangeStateCommand}"
+                    CommandParameter="{x:Static vm:AuthState.Login}" />
+        </StackPanel>
+
+
+        <!-- Profile -->
+        <StackPanel Spacing="10"
+                Width="300"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                IsVisible="{Binding IsProfileVisible}">
+                <TextBlock Text="Your profile" FontSize="20" />
+                <TextBox Watermark="Email" Text="{Binding NewEmail}" />
+                <TextBox Watermark="Display name" Text="{Binding NewDisplayName}" />
+                <TextBox Watermark="New password (optional)"
+                        PasswordChar="*"
+                        Text="{Binding NewPassword}" />
+                <TextBlock Text="{Binding ProfileError}" Foreground="Red" />
+                <TextBlock Text="{Binding ProfileStatus}" />
+                <Button Content="Save profile" Command="{Binding UpdateProfileCommand}" />
+                <Button Content="Log out" Command="{Binding LogoutCommand}" />
+        </StackPanel>
+    </Grid>
 </UserControl>
