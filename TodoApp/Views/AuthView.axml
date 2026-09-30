@@ -1,32 +1,16 @@
-<!-- <Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:TodoApp.ViewModels"
-        x:Class="TodoApp.Views.LoginView"
-        x:DataType="vm:AuthViewModel"
-        Title="Login">
-
-    <Design.DataContext>
-        <vm:AuthViewModel />
-    </Design.DataContext>
-
-    <TextBox Watermark="Email" Text="{Binding LoginEmail}"/>
-    <TextBox Watermark="Password" PasswordChar="•" Text="{Binding LoginPassword}"/>
-    <TextBlock Text="{Binding LoginError}" Foreground="Red"/>
-    <Button Content="Log In" Command="{Binding LoginCommand}"/>
-
-    <UserControl xmlns="https://github.com"
+<UserControl xmlns="https://github.com"
                 xmlns:x="http://microsoft.com"
                 xmlns:vm="using:MyApp.ViewModels"
-                x:Class="MyApp.Views.LoginView"
+                x:Class="TodoApp.Views.AuthView"
                 x:DataType="vm:AuthViewModel">
         
         <StackPanel Spacing="10" Width="300" HorizontalAlignment="Center" VerticalAlignment="Center">
             <TextBlock Text="Login Screen" FontSize="18" HorizontalAlignment="Center"/>
             
-            <TextBox Watermark="Email" Text="{Binding Email, Mode=TwoWay}"/>
-            <TextBox Watermark="Password" PasswordChar="*" Text="{Binding Password, Mode=TwoWay}"/>
+            <TextBox Watermark="Email" Text="{Binding LoginEmail, Mode=TwoWay}"/>
+            <TextBox Watermark="Password" PasswordChar="*" Text="{Binding LoginPassword, Mode=TwoWay}"/>
             
-            <Button Content="Sign In" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+            <Button Content="Sign In" HorizontalAlignment="Stretch" Command = "{Binding LoginCommand}"HorizontalContentAlignment="Center"/>
             
             <!-- Navigation helpers that pass the enum parameter back to the VM -->
             <Button Content="Create an Account" 
@@ -39,6 +23,4 @@
                     CommandParameter="{x:Static vm:AuthState.ResetPassword}"
                     Background="Transparent" HorizontalAlignment="Center"/>
         </StackPanel>
-    </UserControl>
-
-</Windw> -->
+</UserControl>
