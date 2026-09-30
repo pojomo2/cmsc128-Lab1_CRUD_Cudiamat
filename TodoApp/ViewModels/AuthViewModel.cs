@@ -3,11 +3,25 @@ using System.Linq;
 using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+ 
 
 namespace TodoApp.ViewModels;
 
 public partial class AuthViewModel : ViewModelBase
 {
+        // password reset
+    [ObservableProperty] private string resetEmail = "";
+    [ObservableProperty] private string resetStatus = "";
+    [ObservableProperty] private string resetError = "";
+    [ObservableProperty] private string submittedToken = "";
+    [ObservableProperty] private string newPassword = "";
+
+    // profile
+    [ObservableProperty] private string newEmail = "";
+    [ObservableProperty] private string newDisplayName = "";
+    [ObservableProperty] private string profileError = "";
+    [ObservableProperty] private string profileStatus = "";
+
     private readonly TodoDbContext _db = new();
     private readonly string SessionFilePath = Path.Combine(AppContext.BaseDirectory, "session.txt");
 
@@ -23,6 +37,13 @@ public partial class AuthViewModel : ViewModelBase
     [ObservableProperty] private User? currentUser;
 
 
+    public AuthViewModel()
+    {
+        _db.Database.EnsureCreated();
+        TryRestoreSession();
+    }
+
+
     [RelayCommand]
 
     private void Register()
@@ -35,7 +56,7 @@ public partial class AuthViewModel : ViewModelBase
 
         if(_db.Users.Any(u => u.Email == RegEmail))
         {
-            RegisterError = "An account with this email alread exists.";
+            RegisterError = "An account with this email already exists.";
             return;
         }
 
@@ -79,9 +100,8 @@ public partial class AuthViewModel : ViewModelBase
 
     }
 
-}
 
-private void TryRestoreSession()
+    private void TryRestoreSession()
     {
         if(!File.Exists(SessionFilePath)) return;
 
@@ -98,3 +118,76 @@ private void TryRestoreSession()
         }
             
     }
+
+    [RelayCommand]
+    private void Logout()
+    {
+        var token = File.Exists(SessionFilePath) ? File.ReadAllText(SessionFilePath) : null;
+        if (token != null)
+        {
+            var session = _db.Sessions.FirstOrDefault(s => s.Token == token);
+            if (session != null) { _db.Sessions.Remove(session); _db.SaveChanges(); }
+            File.Delete(SessionFilePath);
+        }
+        CurrentUser = null;
+        //navigate back to login
+    }
+
+    [RelayCommand] 
+    private void RequestPasswordReset()
+    {
+        var user = _db.Users.FirstOrDefault(u => u.Email == ResetEmail);
+        if (user == null) { ResetStatus = "If that email exists, a reset link was sent."; return;}
+
+        user.ResetToken = Guid.NewGuid().ToString();
+        user.ResetTokenExpiry = DateTime.Now.AddMinutes(30);
+        _db.SaveChanges();
+
+        EmailService.SendResetEmail(user.Email, user.ResetToken);
+        ResetStatus = "If that email exists, a reset link was sent.";
+
+    }
+
+    [RelayCommand]
+    private void CompletePasswordReset()
+    {
+        var user = _db.Users.FirstOrDefault(u=> u.ResetToken == SubmittedToken && u.ResetTokenExpiry > DateTime.Now);
+
+        if (user == null)
+        {
+            ResetError = "Invalid or expired reset code.";
+            return;
+        }
+
+        user.PasswordHash = PasswordHasher.Hash(NewPassword);
+        user.ResetToken = null;
+        user.ResetTokenExpiry = null;
+        _db.SaveChanges();
+
+        ResetStatus = "Password updated. You can now log in.";
+    }
+
+    [RelayCommand]
+    private void UpdateProfile()
+    {
+        if(CurrentUser == null) return;
+        if(_db.Users.Any(u => u.Email == NewEmail && u.Id != CurrentUser.Id))
+        {
+            ProfileError = "That email is already in use.";
+            return;
+        }
+
+        CurrentUser.Email = NewEmail;
+        CurrentUser.DisplayName = NewDisplayName;
+        if (!string.IsNullOrWhiteSpace(NewPassword))
+        {
+            CurrentUser.PasswordHash = PasswordHasher.Hash(NewPassword);
+        }
+
+        _db.SaveChanges();
+        ProfileStatus = "Profile updated.";
+    }
+
+}
+
+
