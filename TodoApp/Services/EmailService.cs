@@ -8,7 +8,7 @@ public static class EmailService
     public static void SendResetEmail(string toEmail, string token)
     {
         var message = new MimeMessage();
-        message.From.Add(MailboxAddress.Parse("your-app@example.com"));
+        message.From.Add(MailboxAddress.Parse("cudianot@gmail.com"));
         message.To.Add(MailboxAddress.Parse(toEmail));
         message.Subject = "Password Reset";
         message.Body = new TextPart("plain")

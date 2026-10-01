@@ -8,17 +8,24 @@ using TodoApp.Views;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
+using Microsoft.EntityFrameworkCore;
+using Org.BouncyCastle.Bcpg;
 
 namespace TodoApp.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase {
     
     
+    
 
-    public AuthViewModel Auth { get; } = new();
+    public AuthViewModel Auth { get; }
+
     
     public MainWindowViewModel()
     {
+
+        _db.Database.EnsureCreated();
+        Auth = new AuthViewModel();
         Load();
 
         _undoTimer = new DispatcherTimer
@@ -30,8 +37,12 @@ public partial class MainWindowViewModel : ViewModelBase {
         Auth.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(AuthViewModel.CurrentUser))
+            {
                 Load();
-        }
+                OnPropertyChanged(nameof(IsTasksVisible));
+            }
+                
+        };
 
     }  
 
@@ -55,6 +66,14 @@ public partial class MainWindowViewModel : ViewModelBase {
     [ObservableProperty] private string newTag = "Personal";
     [ObservableProperty] private bool _isUndoBannerVisible;
     [ObservableProperty] private TodoItem? _selectedTask;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsTasksVisible))]
+    private bool _isProfileOpen;
+
+    public bool IsTasksVisible =>
+    Auth.CurrentUser is not null && !IsProfileOpen;
+
+
 
     public string[] PriorityOptions {get;} = ["Low", "Med", "High"];
     
@@ -79,10 +98,12 @@ public partial class MainWindowViewModel : ViewModelBase {
         if (Auth.CurrentUser is not { } user)
             return;
 
+        
         var item = new TodoItem {
             Title = NewTitle,
             DueDate = NewDueDate.DateTime,
             Priority = NewPriority,
+            UserId = user.Id,
             Tag = NewTag
         };
 
@@ -182,7 +203,11 @@ public partial class MainWindowViewModel : ViewModelBase {
             NewTag="Others";
         }
 
-    
+    [RelayCommand]
+    private void ShowProfile() => IsProfileOpen = true;
+
+    [RelayCommand]
+    private void ShowTasks() => IsProfileOpen = false;
 }
 
 //Tasks in ObservableCollection is DIFFERENT from _db.Tasks, the former is driving the UI, the latter is the actualy table

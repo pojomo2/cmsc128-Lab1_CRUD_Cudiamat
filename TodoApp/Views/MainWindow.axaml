@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:conv="using:TodoApp.Converters"
+        xmlns:views="using:TodoApp.Views"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="TodoApp.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
@@ -11,11 +12,7 @@
         Title="TodoApp">
     <Window.Resources>
         <conv:StrikethroughConverter x:Key="StrikethroughConverter"/>
-            <Design.DataContext>
-                <!-- This only sets the DataContext for the previewer in an IDE,
-                    to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
-                <vm:MainWindowViewModel />
-            </Design.DataContext>
+            
     </Window.Resources>
 
     <Grid>
@@ -25,7 +22,11 @@
             IsVisible="{Binding Auth.CurrentUser,
                             Converter={x:Static ObjectConverters.IsNull}}"/>
 
-            <DockPanel Margin="10">
+            <views:ProfileView DataContext="{Binding}"
+                   IsVisible="{Binding IsProfileOpen}" />
+
+            <DockPanel Margin="10"
+                       IsVisible = "{Binding IsTasksVisible}">
             <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8">
                 <TextBox PlaceholderText="Enter task..." Text="{Binding NewTitle}" Width="150"/>
                 <ComboBox ItemsSource="{Binding PriorityOptions}"
@@ -34,6 +35,8 @@
                 <ComboBox ItemsSource="{Binding TagOptions}" SelectedItem="{Binding NewTag}"/>
                 <Button Content="Add" Command="{Binding AddTaskCommand}"/>
                 <Button Content="Save" Command="{Binding SaveEditsCommand}" IsVisible="{Binding SelectedTask, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                <Button Content="Log out" Command="{Binding Auth.LogoutCommand}" />
+                <Button Content="Profile" Command="{Binding ShowProfileCommand}" />
             </StackPanel>
 
             <Border IsVisible="{Binding IsUndoBannerVisible}"
