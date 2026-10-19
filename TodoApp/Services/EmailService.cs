@@ -19,8 +19,8 @@ public static class EmailService
         using var client = new SmtpClient();
         client.Connect("smtp.gmail.com", 587, false);
         client.Authenticate(
-            Environment.GetEnvironmentVariable("SMTP_USER"),
-            Environment.GetEnvironmentVariable("SMTP_PASSWORD")
+            Environment.GetEnvironmentVariable("SMTP_USER"), //relaint on envi variables that may be null or misisng, gmail auth may fail
+            Environment.GetEnvironmentVariable("SMTP_PASSWORD") //relaint on envi variables that may be null or missing, gmail auth may fail
         );
         client.Send(message);
         client.Disconnect(true);

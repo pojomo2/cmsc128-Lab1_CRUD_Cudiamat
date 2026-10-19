@@ -71,7 +71,6 @@ public partial class AuthViewModel : ViewModelBase
 
 
     [RelayCommand]
-
     private void Register()
     {
         if(string.IsNullOrWhiteSpace(RegEmail) || string.IsNullOrWhiteSpace(RegPassword))
