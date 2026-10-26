@@ -1,12 +1,21 @@
 using System;
 using System.IO;
-using TodoApp;
 
-var appData = Path.Combine(
-    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-    "TodoApp"); 
 
-Directory.CreateDirectory(appData);
+public static class AppPaths 
+{
+    public static string AppDataDirectory { get; } = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "TodoApp"
+    );
 
-var databasePath = Path.Combine(appData, "todos.db");
-var sessionPath = Path.Combine(appData, "session.txt");
+    public static string DatabasePath { get; } = Path.Combine(AppDataDirectory, "todos.db");
+
+    public static string SessionPath { get; } = Path.Combine(AppDataDirectory, "session.txt");
+
+    private readonly string SessionFilePath = AppPaths.SessionPath;
+    static AppPaths()
+    {
+        Directory.CreateDirectory(AppDataDirectory);
+    }
+}

@@ -2,7 +2,6 @@
 //this is where data persists 
 //SQLite file todos.db sits next to the executable and survives restarts
 using System;
-using System.IO;
 using Microsoft.EntityFrameworkCore;
 
 public class TodoDbContext : DbContext {
@@ -12,7 +11,20 @@ public class TodoDbContext : DbContext {
 
     protected override void OnConfiguring(DbContextOptionsBuilder options)
     {
-         options.UseSqlite("Data Source=todos.db");       
+         options.UseSqlite($"Data Source={AppPaths.DatabasePath}");       
+    }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<User>().HasIndex(user => user.Email).IsUnique();
+
+        modelBuilder.Entity<Session>().HasOne(session => session.User).WithMany().HasForeignKey(session => session.UserId);
+
+        modelBuilder.Entity<TodoItem>().HasOne(task => task.User).WithMany().HasForeignKey(task => task.UserId);
+        
+ 
     }
     
 }

@@ -24,7 +24,6 @@ public partial class MainWindowViewModel : ViewModelBase {
     public MainWindowViewModel()
     {
 
-        _db.Database.EnsureCreated();
         Auth = new AuthViewModel();
         Load();
 

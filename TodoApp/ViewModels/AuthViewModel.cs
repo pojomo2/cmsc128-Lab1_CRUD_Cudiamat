@@ -3,6 +3,8 @@ using System.Linq;
 using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace TodoApp.ViewModels;
  
@@ -44,7 +46,7 @@ public partial class AuthViewModel : ViewModelBase
 
 
     private readonly TodoDbContext _db = new();
-    private readonly string SessionFilePath = Path.Combine(AppContext.BaseDirectory, "session.txt");
+    private readonly string SessionFilePath = AppPaths.SessionPath;
 
     [ObservableProperty] private string regEmail = "";
     [ObservableProperty] private string regDisplayName = "";
@@ -79,7 +81,9 @@ public partial class AuthViewModel : ViewModelBase
             return;
         }
 
-        if(_db.Users.Any(u => u.Email == RegEmail))
+        var email = NormalizeEmail(RegEmail);
+
+        if(_db.Users.Any(u => u.Email == email))
         {
             RegisterError = "An account with this email already exists.";
             return;
@@ -87,7 +91,7 @@ public partial class AuthViewModel : ViewModelBase
 
         var user = new User
         {
-            Email = RegEmail,
+            Email = email,
             DisplayName = RegDisplayName,
             PasswordHash = PasswordHasher.Hash(RegPassword)
         };
@@ -96,15 +100,18 @@ public partial class AuthViewModel : ViewModelBase
         _db.SaveChanges();
         RegisterError = "";
         //navigate to login, or auto-login here
-        LoginEmail = RegEmail;
+        LoginEmail = email;
         LoginPassword = "";
         CurrentState = AuthState.Login;
     }
 
+    private static string NormalizeEmail(string email) => email.Trim().ToLowerInvariant();
+
     [RelayCommand]
     private void Login()
     {
-        var user = _db.Users.FirstOrDefault(u => u.Email == LoginEmail);
+        var email = NormalizeEmail(LoginEmail);
+        var user = _db.Users.FirstOrDefault(u => u.Email == email);
 
         if (user == null || !PasswordHasher.Verify(LoginPassword, user.PasswordHash))
         {
@@ -180,9 +187,10 @@ public partial class AuthViewModel : ViewModelBase
     }
 
     [RelayCommand] 
-    private void RequestPasswordReset()
+    private async Task RequestPasswordReset()
     {
-        var user = _db.Users.FirstOrDefault(u => u.Email == ResetEmail);
+        var email = NormalizeEmail(ResetEmail);
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == email);
         if (user == null) { ResetStatus = "If that email exists, a reset link was sent."; return;}
 
         user.ResetToken = Guid.NewGuid().ToString();
@@ -216,14 +224,23 @@ public partial class AuthViewModel : ViewModelBase
     [RelayCommand]
     private void UpdateProfile()
     {
+
         if(CurrentUser == null) return;
-        if(_db.Users.Any(u => u.Email == NewEmail && u.Id != CurrentUser.Id))
+        if (string.IsNullOrWhiteSpace(NewEmail))
+{
+            ProfileError = "Email is required.";
+            return;
+        }
+
+        var email = NormalizeEmail(NewEmail);
+
+        if(_db.Users.Any(u => u.Email == email && u.Id != CurrentUser.Id))
         {
             ProfileError = "That email is already in use.";
             return;
         }
 
-        CurrentUser.Email = NewEmail;
+        CurrentUser.Email = email;
         CurrentUser.DisplayName = NewDisplayName;
         if (!string.IsNullOrWhiteSpace(NewPassword))
         {
@@ -231,6 +248,7 @@ public partial class AuthViewModel : ViewModelBase
         }
 
         _db.SaveChanges();
+        NewEmail = email;
         ProfileStatus = "Profile updated.";
     }
 
