@@ -74,14 +74,9 @@ namespace TodoApp.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("UserId1")
-                        .HasColumnType("INTEGER");
-
                     b.HasKey("Id");
 
                     b.HasIndex("UserId");
-
-                    b.HasIndex("UserId1");
 
                     b.ToTable("Tasks");
                 });
@@ -139,14 +134,10 @@ namespace TodoApp.Migrations
             modelBuilder.Entity("TodoItem", b =>
                 {
                     b.HasOne("User", "User")
-                        .WithMany()
+                        .WithMany("Tasks")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("User", null)
-                        .WithMany("Tasks")
-                        .HasForeignKey("UserId1");
 
                     b.Navigation("User");
                 });

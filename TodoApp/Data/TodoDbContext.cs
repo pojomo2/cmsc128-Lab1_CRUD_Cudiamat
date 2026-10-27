@@ -4,6 +4,8 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 
+
+
 public class TodoDbContext : DbContext {
     public DbSet<TodoItem> Tasks => Set<TodoItem>();
     public DbSet<User> Users => Set<User>();
@@ -22,7 +24,7 @@ public class TodoDbContext : DbContext {
 
         modelBuilder.Entity<Session>().HasOne(session => session.User).WithMany().HasForeignKey(session => session.UserId);
 
-        modelBuilder.Entity<TodoItem>().HasOne(task => task.User).WithMany().HasForeignKey(task => task.UserId);
+        modelBuilder.Entity<TodoItem>().HasOne(task => task.User).WithMany(user => user.Tasks).HasForeignKey(task => task.UserId);
         
  
     }

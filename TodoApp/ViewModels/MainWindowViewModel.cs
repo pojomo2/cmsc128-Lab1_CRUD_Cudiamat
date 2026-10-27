@@ -27,6 +27,8 @@ public partial class MainWindowViewModel : ViewModelBase {
         Load();
 
 
+        OnPropertyChanged(nameof(IsTasksVisible));
+
         _undoTimer = new DispatcherTimer
         {
             Interval = TimeSpan.FromSeconds(5)
