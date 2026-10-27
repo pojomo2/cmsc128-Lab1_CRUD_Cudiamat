@@ -13,7 +13,6 @@ public static class AppPaths
 
     public static string SessionPath { get; } = Path.Combine(AppDataDirectory, "session.txt");
 
-    private readonly string SessionFilePath = AppPaths.SessionPath;
     static AppPaths()
     {
         Directory.CreateDirectory(AppDataDirectory);

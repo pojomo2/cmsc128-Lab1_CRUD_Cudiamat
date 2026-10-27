@@ -10,12 +10,11 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using Microsoft.EntityFrameworkCore;
 using Org.BouncyCastle.Bcpg;
+using Org.BouncyCastle.Asn1.Misc;
 
 namespace TodoApp.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase {
-    
-    
     
 
     public AuthViewModel Auth { get; }
@@ -27,6 +26,7 @@ public partial class MainWindowViewModel : ViewModelBase {
         Auth = new AuthViewModel();
         Load();
 
+
         _undoTimer = new DispatcherTimer
         {
             Interval = TimeSpan.FromSeconds(5)
@@ -37,8 +37,20 @@ public partial class MainWindowViewModel : ViewModelBase {
         {
             if (e.PropertyName == nameof(AuthViewModel.CurrentUser))
             {
+
+                // Cancel any pending deletion when logging out or switching accounts
+                _undoTimer.Stop();
+                IsUndoBannerVisible = false;
+                _lastDeletedTask = null;
+
+                SelectedTask = null;
+                NewTitle = "";
+                NewDueDate = DateTimeOffset.Now;
+                NewPriority = "Low";
+                NewTag = "Personal";
+
                 Load();
-                OnPropertyChanged(nameof(IsTasksVisible));
+
             }
                 
         };
@@ -54,6 +66,9 @@ public partial class MainWindowViewModel : ViewModelBase {
     private TodoItem? _lastDeletedTask;
     //'?' eans the TodoItem can be null when no task is currently stored
     //These things need to be declared at the top of the class to be accessible by methods within the class
+
+    private TodoItem? FindOwnedTask(int taskId, int userId) => 
+        _db.Tasks.SingleOrDefault(task => task.Id == taskId && task.UserId == userId);
 
     private readonly DispatcherTimer _undoTimer;
     
@@ -90,8 +105,6 @@ public partial class MainWindowViewModel : ViewModelBase {
             Tasks.Add(t);
     }
 
-
-
     [RelayCommand]
     private void AddTask() {
         if (Auth.CurrentUser is not { } user)
@@ -117,89 +130,143 @@ public partial class MainWindowViewModel : ViewModelBase {
     }
 
     [RelayCommand]
-    private void ToggleDone(TodoItem item) 
+    private void ToggleDone(TodoItem item)
     {
-        _db.SaveChanges(); //"Update"
+        if (Auth.CurrentUser is not { } user)
+            return;
+
+        var ownedTask = FindOwnedTask(item.Id, user.Id);
+        if (ownedTask is null)
+            return;
+
+        ownedTask.IsDone = item.IsDone;
+        _db.SaveChanges();
     }
 
 
     [RelayCommand]
     private void EditTask(TodoItem item)
     {
-        SelectedTask = item;
-        NewTitle = item.Title;
-        NewDueDate = item.DueDate;
-        NewPriority = item.Priority;
-        NewTag = item.Tag;
+        if (Auth.CurrentUser is not { } user)
+            return;
+
+        var ownedTask = FindOwnedTask(item.Id, user.Id);
+        if (ownedTask is null)
+            return;
+
+        SelectedTask = ownedTask;
+        NewTitle = ownedTask.Title;
+        NewDueDate = ownedTask.DueDate;
+        NewPriority = ownedTask.Priority;
+        NewTag = ownedTask.Tag;
     }
  
 
     [RelayCommand]
     private async Task DeleteTask(TodoItem item)
     {
-        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+
+        if (_lastDeletedTask is not null) return;
+
+        if (Auth.CurrentUser is not { } user)
+            return;
+
+        var ownedTask = FindOwnedTask(item.Id, user.Id);
+        if (ownedTask is null)
+            return;
+
+        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop
+            || desktop.MainWindow is not { } ownerWindow)
         {
-            var ownerWindow = desktop.MainWindow;
-            
-            if(ownerWindow != null)
-            {
-                var dialog = new ConfirmDialog($"Are you sure you want to delete '{item.Title}'?");
-                var result = await dialog.ShowDialog<bool>(ownerWindow);
-                if(result)
-                {
-                    _lastDeletedTask = item;
-                    Tasks.Remove(item);
-                    IsUndoBannerVisible = true;
-                    _undoTimer.Start();
-                }
-            }
+            return;
         }
+
+        var dialog = new ConfirmDialog($"Are you sure you want to delete '{ownedTask.Title}'?");
+        var confirmed = await dialog.ShowDialog<bool>(ownerWindow);
+
+        // The account could have changed while the confirmation dialog was open.
+        if (!confirmed || Auth.CurrentUser?.Id != user.Id)
+            return;
+
+        ownedTask = FindOwnedTask(item.Id, user.Id);
+        if (ownedTask is null)
+            return;
+
+        _lastDeletedTask = ownedTask;
+
+        var displayedTask = Tasks.FirstOrDefault(task => task.Id == ownedTask.Id);
+        if (displayedTask is not null)
+            Tasks.Remove(displayedTask);
+
+        IsUndoBannerVisible = true;
+        _undoTimer.Start();
     }
 
-        private void OnUndoTimerTick(object? sender, EventArgs e)
+    private void OnUndoTimerTick(object? sender, EventArgs e)
     {
         _undoTimer.Stop();
         IsUndoBannerVisible = false;
 
-        
-        if(_lastDeletedTask != null)
+        if (_lastDeletedTask is not { } pendingTask
+            || Auth.CurrentUser is not { } user)
         {
-            _db.Tasks.Remove(_lastDeletedTask);
-            _db.SaveChanges();
-            _lastDeletedTask = null; //clear the cached ref
+            _lastDeletedTask = null;
+            return;
         }
+
+        var ownedTask = FindOwnedTask(pendingTask.Id, user.Id);
+        if (ownedTask is not null)
+        {
+            _db.Tasks.Remove(ownedTask);
+            _db.SaveChanges();
+        }
+
+        _lastDeletedTask = null;
     }
 
     [RelayCommand]
     private void Undo()
     {
-        if(_lastDeletedTask != null)
+        _undoTimer.Stop();
+        IsUndoBannerVisible = false;
+
+        if (_lastDeletedTask is not { } pendingTask 
+            || Auth.CurrentUser is not { } user)
         {
-            _undoTimer.Stop();
-            Tasks.Add(_lastDeletedTask);
-            IsUndoBannerVisible = false;
             _lastDeletedTask = null;
+            return;
         }
+
+        var ownedTask = FindOwnedTask(pendingTask.Id, user.Id);
+        if(ownedTask is not null && !Tasks.Any(task => task.Id == ownedTask.Id))
+            Tasks.Add(ownedTask);
+        
+        _lastDeletedTask = null;
     }
 
     [RelayCommand] 
     private void SaveEdits()
         {
-            if(SelectedTask == null) return;
 
-            SelectedTask.Title = NewTitle;
-            SelectedTask.DueDate = NewDueDate.DateTime;
-            SelectedTask.Priority = NewPriority;
-            SelectedTask.Tag = NewTag;
+            if (Auth.CurrentUser is not { } user || SelectedTask is not { } selected) return;
+
+            var ownedTask = FindOwnedTask(selected.Id, user.Id); 
+            if (ownedTask is null) return;
+
+            ownedTask.Title = NewTitle;
+            ownedTask.DueDate = NewDueDate.DateTime;
+            ownedTask.Priority = NewPriority;
+            ownedTask.Tag = NewTag;
 
               
             _db.SaveChanges();
             Load();
-            SelectedTask = null;
 
+            SelectedTask = null;
             NewTitle="";
+            NewDueDate = DateTimeOffset.Now;
             NewPriority="Low";
-            NewTag="Others";
+            NewTag="Personal";
         }
 
     [RelayCommand]
@@ -207,8 +274,11 @@ public partial class MainWindowViewModel : ViewModelBase {
 
     [RelayCommand]
     private void ShowTasks() => IsProfileOpen = false;
+
+
 }
+
+
 
 //Tasks in ObservableCollection is DIFFERENT from _db.Tasks, the former is driving the UI, the latter is the actualy table
 
-//Should've put a guard at the add task when last deleted task is not null
