@@ -13,4 +13,7 @@ public class User
     public string? ResetToken { get; set; }
     public DateTime? ResetTokenExpiry { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public ICollection<TodoList> OwnedLists { get; set; } = new List<TodoList>();
+    public ICollection<ListMembership> Memberships { get; set; } = new List<ListMembership>();
+    
 }

@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:conv="using:TodoApp.Converters"
         xmlns:views="using:TodoApp.Views"
+        xmlns:converters="using:Avalonia.Data.Converters"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="TodoApp.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
@@ -14,84 +15,129 @@
         <conv:StrikethroughConverter x:Key="StrikethroughConverter"/>
             
     </Window.Resources>
-
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
+        <!-- List selector and list creation -->
+        <StackPanel Grid.Row="0"
+                    IsVisible="{Binding IsTasksVisible}"
+                    Orientation="Horizontal"
+                    Spacing="8"
+                    Margin="10,10,10,4">
+            <ComboBox Width="220"
+                    ItemsSource="{Binding ListChoices}"
+                    SelectedItem="{Binding SelectedList}"
+                    PlaceholderText="Choose a list">
 
-            <TransitioningContentControl Content="{Binding Auth}" 
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Name}"/>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+            </ComboBox>
+
+            <TextBox Width="180"
+                    Text="{Binding NewListName}"
+                    Watermark="New list name"/>
+
+            <Button Content="Create list"
+                    Command="{Binding CreateListCommand}"/>
+        </StackPanel>
+
+        <!-- Add members to the selected list -->
+        <StackPanel Grid.Row="1"
+                    IsVisible="{Binding IsListManagementVisible}"
+                    Orientation="Horizontal"
+                    Spacing="8"
+                    Margin="10,4">
+            <TextBox Width="220"
+                    Text="{Binding MemberEmail}"
+                    Watermark="Member email"/>
+
+            <Button Content="Add member"
+                    Command="{Binding AddMemberCommand}"/>
+
+            <TextBlock Text="{Binding ListMessage}"
+                    VerticalAlignment="Center"/>
+        </StackPanel>
+
+        <!-- Auth view: assumes an AuthView data template exists in the app -->
+        <TransitioningContentControl Grid.Row="2"
+            Content="{Binding Auth}"
             IsVisible="{Binding Auth.CurrentUser,
-                            Converter={x:Static ObjectConverters.IsNull}}"/>
+                Converter={x:Static converters:ObjectConverters.IsNull}}"/>
 
-            <views:ProfileView DataContext="{Binding}"
-                   IsVisible="{Binding IsProfileOpen}" />
+        <views:ProfileView Grid.Row="2"
+            DataContext="{Binding}"
+            IsVisible="{Binding IsProfileOpen}"/>
 
-            <DockPanel Margin="10"
-                       IsVisible = "{Binding IsTasksVisible}">
-            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8">
-                <TextBox PlaceholderText="Enter task..." Text="{Binding NewTitle}" Width="150"/>
-                <ComboBox ItemsSource="{Binding PriorityOptions}"
-                            SelectedItem="{Binding NewPriority}" />
+        <!-- Task entry and task list -->
+        <DockPanel Grid.Row="2"
+                Margin="10"
+                IsVisible="{Binding IsTasksVisible}">
+            <StackPanel DockPanel.Dock="Top"
+                        Orientation="Horizontal"
+                        Spacing="8"
+                        Margin="0,0,0,8">
+                <TextBox Width="200"
+                        Text="{Binding NewTitle}"
+                        Watermark="Task title"/>
+
                 <DatePicker SelectedDate="{Binding NewDueDate}"/>
-                <ComboBox ItemsSource="{Binding TagOptions}" SelectedItem="{Binding NewTag}"/>
-                <Button Content="Add" Command="{Binding AddTaskCommand}"/>
-                <Button Content="Save" Command="{Binding SaveEditsCommand}" IsVisible="{Binding SelectedTask, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-                <Button Content="Log out" Command="{Binding Auth.LogoutCommand}" />
-                <Button Content="Profile" Command="{Binding ShowProfileCommand}" />
+
+                <ComboBox Width="100"
+                        ItemsSource="{Binding PriorityOptions}"
+                        SelectedItem="{Binding NewPriority}"/>
+
+                <ComboBox Width="120"
+                        ItemsSource="{Binding TagOptions}"
+                        SelectedItem="{Binding NewTag}"/>
+
+                <Button Content="Add task"
+                        Command="{Binding AddTaskCommand}"/>
+
+                <Button Content="Save edits"
+                        Command="{Binding SaveEditsCommand}"/>
+                <Button Content="Log out"
+                        Command="{Binding Auth.LogoutCommand}"/>
+                <Button Content="Profile"
+                        Command="{Binding ShowProfileCommand}"/>
             </StackPanel>
 
-            <Border IsVisible="{Binding IsUndoBannerVisible}"
-                                            Background="#333333"
-                                            CornerRadius="4"
-                                            Padding="10"
-                                            Margin="10"
-                                            DockPanel.Dock="Bottom">
-                <StackPanel Orientation="Horizontal" Spacing="15">
-                    <TextBlock Text="Task deleted"
-                                VerticalAlignment="Center"
-                                Foreground="White"/>
-                        <Button Content="Undo"
-                                Command="{Binding UndoCommand}"
-                                />
+            <StackPanel DockPanel.Dock="Bottom"
+                        Orientation="Horizontal"
+                        Spacing="8"
+                        IsVisible="{Binding IsUndoBannerVisible}">
+                <TextBlock Text="Task deleted"
+                        VerticalAlignment="Center"/>
+                <Button Content="Undo"
+                        Command="{Binding UndoCommand}"/>
+            </StackPanel>
 
-                </StackPanel>
-            </Border>
-
-            <ListBox ItemsSource="{Binding Tasks}"
-                    SelectedItem = "{Binding SelectedTask, Mode=TwoWay}">
+            <ListBox ItemsSource="{Binding Tasks}">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <StackPanel Orientation="Horizontal" Spacing="10">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
                             <CheckBox IsChecked="{Binding IsDone}"
-                                    VerticalAlignment="Center"
+                                    Content="{Binding Title}"
                                     Command="{Binding $parent[Window].DataContext.ToggleDoneCommand}"
                                     CommandParameter="{Binding}"/>
 
-                            
-                            <TextBlock Text="{Binding Title}"
-                                        VerticalAlignment="Center"
-                                        TextDecorations="{Binding IsDone, Converter={StaticResource StrikethroughConverter}}"/>  
-                            
-                            <TextBlock Text="{Binding Priority}"
-                                        VerticalAlignment="Center"/>
-                            <TextBlock Text="{Binding Tag}"
-                                        VerticalAlignment="Center"/>
-                            <TextBlock Text="{Binding DueDate, StringFormat=\{0:MM/dd/yyyy\}}"
-                                        VerticalAlignment="Center"
-                                        Foreground="Gray"/>
+                            <Button Content="Edit"
+                                    Command="{Binding $parent[Window].DataContext.EditTaskCommand}"
+                                    CommandParameter="{Binding}"/>
+
                             <Button Content="Delete"
                                     Command="{Binding $parent[Window].DataContext.DeleteTaskCommand}"
                                     CommandParameter="{Binding}"/>
-                            <Button Content="Edit" Command="{Binding $parent[Window].DataContext.EditTaskCommand}" CommandParameter="{Binding}"/>
-                        <!-- Input fields for editing the currently selected task -->
                         </StackPanel>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
         </DockPanel>
-
-    
-
     </Grid>
-
-
 </Window>

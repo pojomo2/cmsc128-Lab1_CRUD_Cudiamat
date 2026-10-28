@@ -1,7 +1,6 @@
 //data model (the row in your table)
 using System;
 using CommunityToolkit.Mvvm.ComponentModel;
-using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 
 public partial class TodoItem : ObservableObject { 
 
@@ -14,8 +13,12 @@ public partial class TodoItem : ObservableObject {
     public string Priority {get; set;} = "Low";
     public string Tag {get; set;} = "Personal";
     public DateTime CreatedAt {get; set;} = DateTime.Now; //for "sort by date added"
+    public int? ListId { get; set; }
+    public TodoList? List { get; set; }
 
     [ObservableProperty] private bool _isDone;
+
+
 
 
 }

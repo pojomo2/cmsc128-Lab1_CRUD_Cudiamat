@@ -11,6 +11,9 @@ using Avalonia.Threading;
 using Microsoft.EntityFrameworkCore;
 using Org.BouncyCastle.Bcpg;
 using Org.BouncyCastle.Asn1.Misc;
+using Org.BouncyCastle.Asn1.Esf;
+using System.Collections.Generic;
+using Org.BouncyCastle.Asn1.X509;
 
 namespace TodoApp.ViewModels;
 
@@ -24,10 +27,7 @@ public partial class MainWindowViewModel : ViewModelBase {
     {
 
         Auth = new AuthViewModel();
-        Load();
 
-
-        OnPropertyChanged(nameof(IsTasksVisible));
 
         _undoTimer = new DispatcherTimer
         {
@@ -40,22 +40,16 @@ public partial class MainWindowViewModel : ViewModelBase {
             if (e.PropertyName == nameof(AuthViewModel.CurrentUser))
             {
 
-                // Cancel any pending deletion when logging out or switching accounts
-                _undoTimer.Stop();
-                IsUndoBannerVisible = false;
-                _lastDeletedTask = null;
+                ResetTransientState();
+                RefreshLists();
+                IsProfileOpen = false;
+                OnPropertyChanged(nameof(IsTasksVisible));
+                OnPropertyChanged(nameof(IsListManagementVisible)); 
 
-                SelectedTask = null;
-                NewTitle = "";
-                NewDueDate = DateTimeOffset.Now;
-                NewPriority = "Low";
-                NewTag = "Personal";
-
-                Load();
-
-            }
-                
+            }              
         };
+
+        RefreshLists();
 
     }  
 
@@ -69,8 +63,20 @@ public partial class MainWindowViewModel : ViewModelBase {
     //'?' eans the TodoItem can be null when no task is currently stored
     //These things need to be declared at the top of the class to be accessible by methods within the class
 
-    private TodoItem? FindOwnedTask(int taskId, int userId) => 
-        _db.Tasks.SingleOrDefault(task => task.Id == taskId && task.UserId == userId);
+    private TodoItem? FindAccessibleTask(int taskId, int userId) => 
+        _db.Tasks.SingleOrDefault(task => 
+            task.Id == taskId && 
+            (
+                //Personal task: only its creator can access it
+                (task.ListId == null && task.UserId == userId)
+
+                //List task: only the list owner or a current member can access it
+                || (task.ListId != null &&
+                    _db.Lists.Any(list =>
+                        list.Id == task.ListId && 
+                        (list.OwnerId == userId ||
+                        list.Memberships.Any(member => member.UserId == userId))))
+            ));
 
     private readonly DispatcherTimer _undoTimer;
     
@@ -84,10 +90,12 @@ public partial class MainWindowViewModel : ViewModelBase {
     [ObservableProperty] private TodoItem? _selectedTask;
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsTasksVisible))]
+    [NotifyPropertyChangedFor(nameof(IsListManagementVisible))]
     private bool _isProfileOpen;
 
     public bool IsTasksVisible =>
     Auth.CurrentUser is not null && !IsProfileOpen;
+    public bool IsListManagementVisible => IsTasksVisible && CanManageList;
 
 
 
@@ -103,7 +111,7 @@ public partial class MainWindowViewModel : ViewModelBase {
         if (Auth.CurrentUser is not { } user)
             return;
 
-        foreach (var t in _db.Tasks.Where(task => task.UserId == user.Id).OrderBy(t => t.DueDate))
+        foreach (var t in _db.TasksFor(user.Id, CurrentListId).OrderBy(t => t.DueDate))
             Tasks.Add(t);
     }
 
@@ -113,13 +121,21 @@ public partial class MainWindowViewModel : ViewModelBase {
             return;
 
         
-        var item = new TodoItem {
+        if (CurrentListId is int activeList && _db.FindVisibleList(activeList, user.Id) is null)
+            return;
+
+        var item = new TodoItem 
+        {
             Title = NewTitle,
             DueDate = NewDueDate.DateTime,
             Priority = NewPriority,
             UserId = user.Id,
-            Tag = NewTag
+            Tag = NewTag,
+            ListId = CurrentListId
+
         };
+
+
 
         if (_lastDeletedTask != null) {
             return; 
@@ -137,7 +153,7 @@ public partial class MainWindowViewModel : ViewModelBase {
         if (Auth.CurrentUser is not { } user)
             return;
 
-        var ownedTask = FindOwnedTask(item.Id, user.Id);
+        var ownedTask = FindAccessibleTask(item.Id, user.Id);
         if (ownedTask is null)
             return;
 
@@ -152,7 +168,7 @@ public partial class MainWindowViewModel : ViewModelBase {
         if (Auth.CurrentUser is not { } user)
             return;
 
-        var ownedTask = FindOwnedTask(item.Id, user.Id);
+        var ownedTask = FindAccessibleTask(item.Id, user.Id);
         if (ownedTask is null)
             return;
 
@@ -173,7 +189,7 @@ public partial class MainWindowViewModel : ViewModelBase {
         if (Auth.CurrentUser is not { } user)
             return;
 
-        var ownedTask = FindOwnedTask(item.Id, user.Id);
+        var ownedTask = FindAccessibleTask(item.Id, user.Id);
         if (ownedTask is null)
             return;
 
@@ -190,7 +206,7 @@ public partial class MainWindowViewModel : ViewModelBase {
         if (!confirmed || Auth.CurrentUser?.Id != user.Id)
             return;
 
-        ownedTask = FindOwnedTask(item.Id, user.Id);
+        ownedTask = FindAccessibleTask(item.Id, user.Id);
         if (ownedTask is null)
             return;
 
@@ -216,7 +232,7 @@ public partial class MainWindowViewModel : ViewModelBase {
             return;
         }
 
-        var ownedTask = FindOwnedTask(pendingTask.Id, user.Id);
+        var ownedTask = FindAccessibleTask(pendingTask.Id, user.Id);
         if (ownedTask is not null)
         {
             _db.Tasks.Remove(ownedTask);
@@ -239,7 +255,7 @@ public partial class MainWindowViewModel : ViewModelBase {
             return;
         }
 
-        var ownedTask = FindOwnedTask(pendingTask.Id, user.Id);
+        var ownedTask = FindAccessibleTask(pendingTask.Id, user.Id);
         if(ownedTask is not null && !Tasks.Any(task => task.Id == ownedTask.Id))
             Tasks.Add(ownedTask);
         
@@ -252,7 +268,7 @@ public partial class MainWindowViewModel : ViewModelBase {
 
             if (Auth.CurrentUser is not { } user || SelectedTask is not { } selected) return;
 
-            var ownedTask = FindOwnedTask(selected.Id, user.Id); 
+            var ownedTask = FindAccessibleTask(selected.Id, user.Id); 
             if (ownedTask is null) return;
 
             ownedTask.Title = NewTitle;
@@ -278,6 +294,113 @@ public partial class MainWindowViewModel : ViewModelBase {
     private void ShowTasks() => IsProfileOpen = false;
 
 
+    /////////////////////////////////////////////
+    public record ListChoice(int? Id, string Name, bool IsOwner); // Id == null => Personal
+
+    public ObservableCollection<ListChoice> ListChoices { get; } = new();
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanManageList))]
+    [NotifyPropertyChangedFor(nameof(IsListManagementVisible))]
+    private ListChoice? _selectedList;
+
+    [ObservableProperty] private string _newListName = "";
+    [ObservableProperty] private string _memberEmail = "";
+    [ObservableProperty] private string _listMessage = "";
+
+    private int? CurrentListId => SelectedList?.Id;                 // null => Personal (safe default)
+    public bool CanManageList => SelectedList is { Id: not null, IsOwner: true };   // UI convenience only
+    private bool _refreshingLists;
+
+    partial void OnSelectedListChanged(ListChoice? value)
+    {
+        if (_refreshingLists) return;
+        ResetTransientState();  // same policy as account change: cancel pending delete
+        Load();
+    }
+
+    private void ResetTransientState()
+    {
+        _undoTimer.Stop();
+        IsUndoBannerVisible = false;
+        _lastDeletedTask = null;
+        SelectedTask = null;
+        NewTitle = "";
+        NewDueDate = DateTimeOffset.Now;
+        NewPriority = "Low";
+        NewTag = "Personal";
+        MemberEmail = "";
+        ListMessage = "";
+    }
+
+    private void RefreshLists(int? keepSelectedId = null)
+    {
+        _refreshingLists = true;
+        try
+        {
+            ListChoices.Clear();
+            ListChoices.Add(new ListChoice(null, "Personal", true));
+
+            if (Auth.CurrentUser is { } user)
+                foreach (var l in _db.Lists.VisibleTo(user.Id).Include(l => l.Owner).OrderBy(l => l.Name))
+                {
+                    var mine = l.OwnerId == user.Id;
+                    ListChoices.Add(new ListChoice(l.Id, mine ? l.Name : $"{l.Name} (shared by {l.Owner.DisplayName})", mine));
+                }
+
+                SelectedList = ListChoices.FirstOrDefault(c => c.Id == keepSelectedId) ?? ListChoices[0];
+        }
+        finally { _refreshingLists = false; }
+
+        Load();
+
+    }
+
+
+    [RelayCommand]
+    private void CreateList()
+    {
+        if (Auth.CurrentUser is not { } user) return;
+
+        var name = NewListName.Trim();
+        if (name.Length == 0)
+        {
+            ListMessage = "Enter a list name.";
+            return;
+        }
+
+        var list = new TodoList { Name = name, OwnerId = user.Id };
+        _db.Lists.Add(list);
+        _db.SaveChanges();
+
+        NewListName = "";
+        ResetTransientState();
+        RefreshLists(list.Id);
+
+    }
+
+    [RelayCommand]
+    private void AddMember()
+    {
+        if (Auth.CurrentUser is not { } user || CurrentListId is not int listId) return;
+
+        if(_db.FindOwnedList(listId, user.Id) is null)
+        {
+            ListMessage = "Only the list owner can add members.";
+            return;
+        }
+
+        var email = AuthViewModel.NormalizeEmail(MemberEmail);
+        var target = _db.Users.SingleOrDefault(u => u.Email == email);
+        if (target is null) { ListMessage = "No account with that email."; return;  }
+        if (target.Id == user.Id) { ListMessage = "You already own this list."; return; }
+        if (_db.ListMemberships.Any(m => m.ListId == listId && m.UserId == target.Id)) { ListMessage = "Already a member."; return; }
+
+        _db.ListMemberships.Add(new ListMembership { ListId = listId, UserId = target.Id });
+        _db.SaveChanges();
+        MemberEmail = "";
+        ListMessage = $"Added {target.DisplayName}.";
+    }
 }
 
 

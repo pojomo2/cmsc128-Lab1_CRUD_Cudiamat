@@ -105,7 +105,7 @@ public partial class AuthViewModel : ViewModelBase
         CurrentState = AuthState.Login;
     }
 
-    private static string NormalizeEmail(string email) => email.Trim().ToLowerInvariant();
+   internal static string NormalizeEmail(string email) => email.Trim().ToLowerInvariant();
 
     [RelayCommand]
     private void Login()

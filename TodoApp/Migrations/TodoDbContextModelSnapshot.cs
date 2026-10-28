@@ -16,6 +16,24 @@ namespace TodoApp.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.11");
 
+            modelBuilder.Entity("ListMembership", b =>
+                {
+                    b.Property<int>("ListId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("AddedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("ListId", "UserId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ListMemberships");
+                });
+
             modelBuilder.Entity("Session", b =>
                 {
                     b.Property<int>("Id")
@@ -32,14 +50,9 @@ namespace TodoApp.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("UserId1")
-                        .HasColumnType("INTEGER");
-
                     b.HasKey("Id");
 
                     b.HasIndex("UserId");
-
-                    b.HasIndex("UserId1");
 
                     b.ToTable("Sessions");
                 });
@@ -59,6 +72,9 @@ namespace TodoApp.Migrations
                     b.Property<bool>("IsDone")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int?>("ListId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Priority")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -76,9 +92,34 @@ namespace TodoApp.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ListId");
+
                     b.HasIndex("UserId");
 
                     b.ToTable("Tasks");
+                });
+
+            modelBuilder.Entity("TodoList", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("OwnerId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerId");
+
+                    b.ToTable("Lists");
                 });
 
             modelBuilder.Entity("User", b =>
@@ -116,34 +157,78 @@ namespace TodoApp.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("Session", b =>
+            modelBuilder.Entity("ListMembership", b =>
                 {
+                    b.HasOne("TodoList", "List")
+                        .WithMany("Memberships")
+                        .HasForeignKey("ListId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("User", "User")
-                        .WithMany()
+                        .WithMany("Memberships")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("User", null)
+                    b.Navigation("List");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Session", b =>
+                {
+                    b.HasOne("User", "User")
                         .WithMany("Sessions")
-                        .HasForeignKey("UserId1");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });
 
             modelBuilder.Entity("TodoItem", b =>
                 {
+                    b.HasOne("TodoList", "List")
+                        .WithMany("Tasks")
+                        .HasForeignKey("ListId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
                     b.HasOne("User", "User")
                         .WithMany("Tasks")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("List");
+
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("TodoList", b =>
+                {
+                    b.HasOne("User", "Owner")
+                        .WithMany("OwnedLists")
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("TodoList", b =>
+                {
+                    b.Navigation("Memberships");
+
+                    b.Navigation("Tasks");
                 });
 
             modelBuilder.Entity("User", b =>
                 {
+                    b.Navigation("Memberships");
+
+                    b.Navigation("OwnedLists");
+
                     b.Navigation("Sessions");
 
                     b.Navigation("Tasks");
