@@ -12,9 +12,16 @@ public class TodoDbContext : DbContext {
     public DbSet<TodoList> Lists => Set<TodoList>();
     public DbSet<ListMembership> ListMemberships => Set<ListMembership>();
 
-    protected override void OnConfiguring(DbContextOptionsBuilder options)
+    public TodoDbContext() { }
+    public TodoDbContext(DbContextOptions<TodoDbContext> options)
+        : base(options) { }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-         options.UseSqlite($"Data Source={AppPaths.DatabasePath}");       
+         if (!optionsBuilder.IsConfigured)
+        {
+            optionsBuilder.UseSqlite($"Data Source={AppPaths.DatabasePath}");
+        }
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
