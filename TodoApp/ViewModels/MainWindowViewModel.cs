@@ -63,20 +63,8 @@ public partial class MainWindowViewModel : ViewModelBase {
     //'?' eans the TodoItem can be null when no task is currently stored
     //These things need to be declared at the top of the class to be accessible by methods within the class
 
-    private TodoItem? FindAccessibleTask(int taskId, int userId) => 
-        _db.Tasks.SingleOrDefault(task => 
-            task.Id == taskId && 
-            (
-                //Personal task: only its creator can access it
-                (task.ListId == null && task.UserId == userId)
 
-                //List task: only the list owner or a current member can access it
-                || (task.ListId != null &&
-                    _db.Lists.Any(list =>
-                        list.Id == task.ListId && 
-                        (list.OwnerId == userId ||
-                        list.Memberships.Any(member => member.UserId == userId))))
-            ));
+
 
     private readonly DispatcherTimer _undoTimer;
     
@@ -111,8 +99,11 @@ public partial class MainWindowViewModel : ViewModelBase {
         if (Auth.CurrentUser is not { } user)
             return;
 
-        foreach (var t in _db.TasksFor(user.Id, CurrentListId).OrderBy(t => t.DueDate))
+        foreach (var t in _db.TasksFor(user.Id, CurrentListId).AsNoTracking().OrderBy(t => t.DueDate))
+        {
             Tasks.Add(t);
+
+        }
     }
 
     [RelayCommand]
@@ -153,7 +144,7 @@ public partial class MainWindowViewModel : ViewModelBase {
         if (Auth.CurrentUser is not { } user)
             return;
 
-        var ownedTask = FindAccessibleTask(item.Id, user.Id);
+        var ownedTask = _db.FindTask(item.Id, user.Id, CurrentListId);
         if (ownedTask is null)
             return;
 
@@ -168,7 +159,7 @@ public partial class MainWindowViewModel : ViewModelBase {
         if (Auth.CurrentUser is not { } user)
             return;
 
-        var ownedTask = FindAccessibleTask(item.Id, user.Id);
+        var ownedTask = _db.FindTask(item.Id, user.Id, CurrentListId);
         if (ownedTask is null)
             return;
 
@@ -189,7 +180,7 @@ public partial class MainWindowViewModel : ViewModelBase {
         if (Auth.CurrentUser is not { } user)
             return;
 
-        var ownedTask = FindAccessibleTask(item.Id, user.Id);
+        var ownedTask = _db.FindTask(item.Id, user.Id, CurrentListId);
         if (ownedTask is null)
             return;
 
@@ -206,7 +197,7 @@ public partial class MainWindowViewModel : ViewModelBase {
         if (!confirmed || Auth.CurrentUser?.Id != user.Id)
             return;
 
-        ownedTask = FindAccessibleTask(item.Id, user.Id);
+        ownedTask = _db.FindTask(item.Id, user.Id, CurrentListId);
         if (ownedTask is null)
             return;
 
@@ -232,7 +223,7 @@ public partial class MainWindowViewModel : ViewModelBase {
             return;
         }
 
-        var ownedTask = FindAccessibleTask(pendingTask.Id, user.Id);
+        var ownedTask = _db.FindTask(pendingTask.Id, user.Id, CurrentListId);
         if (ownedTask is not null)
         {
             _db.Tasks.Remove(ownedTask);
@@ -255,7 +246,7 @@ public partial class MainWindowViewModel : ViewModelBase {
             return;
         }
 
-        var ownedTask = FindAccessibleTask(pendingTask.Id, user.Id);
+        var ownedTask = _db.FindTask(pendingTask.Id, user.Id, CurrentListId);
         if(ownedTask is not null && !Tasks.Any(task => task.Id == ownedTask.Id))
             Tasks.Add(ownedTask);
         
@@ -268,7 +259,7 @@ public partial class MainWindowViewModel : ViewModelBase {
 
             if (Auth.CurrentUser is not { } user || SelectedTask is not { } selected) return;
 
-            var ownedTask = FindAccessibleTask(selected.Id, user.Id); 
+            var ownedTask = _db.FindTask(selected.Id, user.Id, CurrentListId); 
             if (ownedTask is null) return;
 
             ownedTask.Title = NewTitle;
@@ -336,19 +327,43 @@ public partial class MainWindowViewModel : ViewModelBase {
     private void RefreshLists(int? keepSelectedId = null)
     {
         _refreshingLists = true;
+
         try
         {
             ListChoices.Clear();
             ListChoices.Add(new ListChoice(null, "Personal", true));
 
             if (Auth.CurrentUser is { } user)
-                foreach (var l in _db.Lists.VisibleTo(user.Id).Include(l => l.Owner).OrderBy(l => l.Name))
+            {
+                var visibleLists = _db.Lists
+                .VisibleTo(user.Id)
+                .AsNoTracking()
+                .Select(list => new
                 {
-                    var mine = l.OwnerId == user.Id;
-                    ListChoices.Add(new ListChoice(l.Id, mine ? l.Name : $"{l.Name} (shared by {l.Owner.DisplayName})", mine));
+                    list.Id,
+                    list.Name,
+                    list.OwnerId,
+                    OwnerName = list.Owner.DisplayName
+                })
+                .OrderBy(list => list.Name)
+                .ToList();
+
+                foreach (var list in visibleLists)
+                {
+                    var mine = list.OwnerId == user.Id;
+
+                    ListChoices.Add(mine 
+                        ? new ListChoice(list.Id, list.Name, true)
+                        : new ListChoice(
+                            list.Id,
+                            $"{list.Name} (share by {list.OwnerName})",
+                            false));
                 }
 
-                SelectedList = ListChoices.FirstOrDefault(c => c.Id == keepSelectedId) ?? ListChoices[0];
+                SelectedList = ListChoices.FirstOrDefault(choice => choice.Id == keepSelectedId) ?? ListChoices[0];
+
+            }
+
         }
         finally { _refreshingLists = false; }
 

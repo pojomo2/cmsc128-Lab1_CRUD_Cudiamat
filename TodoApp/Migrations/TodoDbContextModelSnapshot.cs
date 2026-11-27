@@ -31,7 +31,7 @@ namespace TodoApp.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ListMemberships");
+                    b.ToTable("ListMemberships", (string)null);
                 });
 
             modelBuilder.Entity("Session", b =>
@@ -54,7 +54,7 @@ namespace TodoApp.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Sessions");
+                    b.ToTable("Sessions", (string)null);
                 });
 
             modelBuilder.Entity("TodoItem", b =>
@@ -96,7 +96,7 @@ namespace TodoApp.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Tasks");
+                    b.ToTable("Tasks", (string)null);
                 });
 
             modelBuilder.Entity("TodoList", b =>
@@ -119,7 +119,7 @@ namespace TodoApp.Migrations
 
                     b.HasIndex("OwnerId");
 
-                    b.ToTable("Lists");
+                    b.ToTable("Lists", (string)null);
                 });
 
             modelBuilder.Entity("User", b =>
@@ -154,7 +154,7 @@ namespace TodoApp.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("ListMembership", b =>
