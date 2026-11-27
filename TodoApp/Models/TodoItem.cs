@@ -20,6 +20,5 @@ public partial class TodoItem : ObservableObject {
 
 
 
-
 }
 
