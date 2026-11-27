@@ -84,3 +84,43 @@ TodoApp/
 | ![SS1](TodoApp/Assets/Screenshot_20260910_231046.png) | ![SS2](TodoApp/Assets/Screenshot_20260910_231121.png) | ![SS3](TodoApp/Assets/Screenshot_20260910_231138.png) |
 
 | ![SS4](TodoApp/Assets/Screenshot_20260911_115700.png) | ![SS5](TodoApp/Assets/Screenshot_20260911_120217.png) |
+
+Activities 1 and 2: Merge Strategy
+Activity 1 and Activity 2 were combined into the Lab 3 application using [describe your actual branch and merge strategy, such as merging the Activity 2 branch into the Lab 3 branch]. Conflicts were resolved by retaining the existing registration, login, password-hashing, and session-handling behavior from Activity 2 while integrating the task-management and collaborative-list features. The merged application was then built and tested.
+
+Database Schema
+The application uses SQLite with Entity Framework Core.
+
+Users stores account information. Email addresses have a unique index.
+Tasks stores task data. Each task has a required UserId foreign key to its creator. A task may have a nullable ListId: NULL represents a personal task, while a value associates it with a collaborative list.
+Lists stores collaborative lists and their OwnerId.
+ListMemberships associates users with lists. Its composite key is (ListId, UserId).
+Sessions stores sessions associated with users through UserId.
+A user can see a collaborative list if they own it or have a corresponding membership record. Personal tasks remain restricted to their owner.
+
+Ownership and Access Checks
+This is an Avalonia desktop application, not an HTTP API, so it has no REST endpoints. Access checks are performed in the application’s data-access operations before task or list data is returned or changed.
+
+Examples include:
+
+Listing available lists filters them to lists owned by the signed-in user or lists they belong to.
+Loading tasks filters personal tasks by their owner and collaborative-list tasks by list access.
+Looking up a task for an operation checks its ID together with the signed-in user and, for shared tasks, the selected accessible list.
+Adding a member is restricted to the collaborative-list owner.
+Task operations should repeat the access check before updating or deleting data; the UI alone is not treated as an authorization boundary.
+Installation and Local Run
+Requirements: the .NET SDK version targeted by TodoApp.csproj and the EF Core command-line tool if migrations are not applied automatically.
+
+From the repository root:
+
+
+If the application does not apply migrations at startup, update the local database:
+
+
+Run the app:
+
+
+Run the tests from the repository root:
+
+
+The SQLite database is stored at the path configured by AppPaths.DatabasePath.

@@ -1,0 +1,56 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:TodoApp.ViewModels"
+             x:Class="TodoApp.Views.ProfileView"
+             x:DataType="vm:MainWindowViewModel">
+    <UserControl.Styles>
+        <Style Selector="Button.backToTodos:pointerover">
+            <Setter Property="Background" Value="#2563EB" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid Background="#111827">
+        <Border Width="380"
+                Padding="28"
+                Background="#1F2937"
+                CornerRadius="12"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center">
+            <StackPanel Spacing="12">
+                <TextBlock Text="Your profile"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           Foreground="#F9FAFB" />
+
+                <TextBox PlaceholderText="Email"
+                         Text="{Binding Auth.NewEmail}" />
+
+                <TextBox PlaceholderText="Display name"
+                         Text="{Binding Auth.NewDisplayName}" />
+
+                <TextBox PlaceholderText="New password (optional)"
+                         PasswordChar="*"
+                         Text="{Binding Auth.NewPassword}" />
+
+                <TextBlock Text="{Binding Auth.ProfileError}"
+                           Foreground="Red"
+                           TextWrapping="Wrap" />
+
+                <TextBlock Text="{Binding Auth.ProfileStatus}"
+                           TextWrapping="Wrap" />
+
+                <Button Content="Save profile"
+                        Command="{Binding Auth.UpdateProfileCommand}" />
+
+                <Button Classes="backToTodos"
+                        Content="← Back to todos"
+                        Command="{Binding ShowTasksCommand}"
+                        Background="#2563EB"
+                        Foreground="White"
+                        Padding="10"
+                        HorizontalAlignment="Left" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>
